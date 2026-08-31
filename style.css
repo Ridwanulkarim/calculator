@@ -1,0 +1,156 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #2c3e50, #000000);
+    background-attachment: fixed;
+}
+
+.calculator-container {
+    width: 320px;
+    background-color: rgba(28, 28, 30, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 20px 16px 20px 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+/* macOS Window Header */
+.window-header {
+    display: flex;
+    align-items: center;
+    height: 18px;
+    margin-bottom: 15px;
+    padding-left: 4px;
+}
+
+.window-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.window-buttons .btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.window-buttons .close {
+    background-color: #ff5f56;
+    border: 0.5px solid #e0443e;
+}
+
+.window-buttons .minimize {
+    background-color: #ffbd2e;
+    border: 0.5px solid #dea123;
+}
+
+.window-buttons .zoom {
+    background-color: #27c93f;
+    border: 0.5px solid #1aab29;
+}
+
+/* Display */
+.display-container {
+    height: 90px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 0 12px 10px 12px;
+    overflow: hidden;
+}
+
+.display {
+    color: #ffffff;
+    font-size: 56px;
+    font-weight: 300;
+    text-align: right;
+    white-space: nowrap;
+    letter-spacing: -0.5px;
+    transition: font-size 0.15s ease;
+}
+
+/* Keypad Grid */
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.key {
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    font-size: 24px;
+    font-weight: 400;
+    cursor: pointer;
+    outline: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: filter 0.15s ease, background-color 0.2s ease, color 0.2s ease, transform 0.05s ease;
+}
+
+.key:active {
+    transform: scale(0.96);
+}
+
+/* Function Buttons (AC, +/-, %) */
+.key.function {
+    background-color: #a5a5a5;
+    color: #000000;
+}
+
+.key.function:active {
+    background-color: #d9d9d9;
+}
+
+/* Number Buttons (0-9, .) */
+.key.number {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+.key.number:active {
+    background-color: #636366;
+}
+
+/* Zero button spans 2 columns */
+.key.zero {
+    grid-column: span 2;
+    border-radius: 30px;
+    justify-content: flex-start;
+    padding-left: 24px;
+}
+
+/* Operator Buttons (+, -, ×, ÷, =) */
+.key.operator {
+    background-color: #ff9f0a;
+    color: #ffffff;
+    font-size: 28px;
+}
+
+.key.operator:active {
+    background-color: #fcae3b;
+}
+
+.key.operator.active {
+    background-color: #ffffff;
+    color: #ff9f0a;
+}

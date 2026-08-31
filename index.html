@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple UI Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="calculator-container">
+        <!-- Window Header Bar (macOS style window controls) -->
+        <div class="window-header">
+            <div class="window-buttons">
+                <span class="btn close"></span>
+                <span class="btn minimize"></span>
+                <span class="btn zoom"></span>
+            </div>
+        </div>
+
+        <!-- Calculator Display -->
+        <div class="display-container">
+            <div class="display" id="display">0</div>
+        </div>
+
+        <!-- Keypad -->
+        <div class="keypad">
+            <!-- Row 1 -->
+            <button class="key function" id="clear-btn" data-action="clear">AC</button>
+            <button class="key function" data-action="toggle-sign">±</button>
+            <button class="key function" data-action="percent">%</button>
+            <button class="key operator" data-action="operator" data-operator="÷">÷</button>
+
+            <!-- Row 2 -->
+            <button class="key number" data-number="7">7</button>
+            <button class="key number" data-number="8">8</button>
+            <button class="key number" data-number="9">9</button>
+            <button class="key operator" data-action="operator" data-operator="×">×</button>
+
+            <!-- Row 3 -->
+            <button class="key number" data-number="4">4</button>
+            <button class="key number" data-number="5">5</button>
+            <button class="key number" data-number="6">6</button>
+            <button class="key operator" data-action="operator" data-operator="-">−</button>
+
+            <!-- Row 4 -->
+            <button class="key number" data-number="1">1</button>
+            <button class="key number" data-number="2">2</button>
+            <button class="key number" data-number="3">3</button>
+            <button class="key operator" data-action="operator" data-operator="+">+</button>
+
+            <!-- Row 5 -->
+            <button class="key number zero" data-number="0">0</button>
+            <button class="key number" data-action="decimal">.</button>
+            <button class="key operator" data-action="calculate">=</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
