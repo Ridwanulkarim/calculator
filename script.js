@@ -264,13 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtnElement = document.getElementById('clear-btn');
     const calculator = new Calculator(displayElement, expressionElement, clearBtnElement);
 
-    // Initial state demo setup matching user screenshot: 38670 ÷ 50000 = 0.7734
-    calculator.previousValue = 38670;
-    calculator.operator = '÷';
-    calculator.expressionStr = '38,670÷50,000';
-    calculator.currentValue = '0.7734';
-    calculator.awaitingNextOperand = true;
-    calculator.updateDisplay();
+    // Initial state clean: main display shows 0, expression line is empty/null
+    calculator.reset();
 
     // Event listener for button clicks
     document.querySelectorAll('.key').forEach(button => {
