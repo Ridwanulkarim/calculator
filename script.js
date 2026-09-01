@@ -5,6 +5,7 @@ class Calculator {
         this.clearBtnElements = clearBtnElements;
         this.currentMode = 'basic';
         this.currentBase = 16;
+        this.encodingMode = 'ascii'; // 'ascii' or 'unicode'
         this.showBinary = true;
         this.rpnMode = false;
         this.rpnStack = [];
@@ -402,7 +403,29 @@ class Calculator {
         this.displayElement.textContent = displayStr;
 
         if (this.expressionElement) {
-            if (this.rpnMode) {
+            if (this.currentMode === 'programmer') {
+                let codePoint = parseInt(this.currentValue, this.currentBase) || 0;
+                let charStr = '';
+                try {
+                    if (codePoint > 0 && codePoint <= 0x10FFFF) {
+                        charStr = String.fromCodePoint(codePoint);
+                    }
+                } catch (e) {
+                    charStr = '';
+                }
+
+                if (this.encodingMode === 'unicode') {
+                    let hexStr = codePoint.toString(16).toUpperCase().padStart(4, '0');
+                    this.expressionElement.textContent = `Unicode: U+${hexStr} ${charStr ? `('${charStr}')` : ''}`;
+                } else {
+                    // ASCII
+                    if (codePoint >= 32 && codePoint <= 126) {
+                        this.expressionElement.textContent = `ASCII: '${charStr}' (${codePoint})`;
+                    } else {
+                        this.expressionElement.textContent = `ASCII: Decimal ${codePoint}`;
+                    }
+                }
+            } else if (this.rpnMode) {
                 this.expressionElement.textContent = this.rpnStack.length > 0 
                     ? `Stack: [ ${this.rpnStack.map(n => this.formatNumber(n)).join(', ')} ]` 
                     : '';
@@ -499,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const calculatorContainer = document.getElementById('calculator-container');
     const progControls = document.getElementById('prog-controls');
     const binaryGrid = document.getElementById('binary-grid');
+    const btnToggleBinary = document.getElementById('btn-toggle-binary');
     const rpnControls = document.getElementById('rpn-controls');
     const equalsBtns = document.querySelectorAll('.equals-btn');
     const rpnCheck = document.getElementById('rpn-check');
@@ -556,6 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     basicKeypad.classList.remove('hidden');
                 }
 
+                calculator.updateDisplay();
                 modeDropdown.classList.remove('show');
             });
         });
@@ -580,6 +605,39 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+
+    // ASCII | Unicode segmented control listeners
+    document.querySelectorAll('.seg-btn[data-encoding]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.seg-btn[data-encoding]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            calculator.encodingMode = btn.dataset.encoding;
+            calculator.updateDisplay();
+        });
+    });
+
+    // Hide Binary / Show Binary button listener
+    if (btnToggleBinary) {
+        btnToggleBinary.addEventListener('click', () => {
+            calculator.showBinary = !calculator.showBinary;
+            btnToggleBinary.textContent = calculator.showBinary ? 'Hide Binary' : 'Show Binary';
+            if (calculator.showBinary) {
+                binaryGrid.classList.remove('hidden');
+            } else {
+                binaryGrid.classList.add('hidden');
+            }
+        });
+    }
+
+    // Programmer radix base selector (8, 10, 16)
+    document.querySelectorAll('.seg-btn[data-base]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.seg-btn[data-base]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const base = parseInt(btn.dataset.base, 10);
+            calculator.setBase(base);
+        });
+    });
 
     // 2nd button toggle listener
     const btn2nd = document.querySelector('.btn-2nd');
@@ -612,16 +670,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.key[data-rpn]').forEach(btn => {
         btn.addEventListener('click', () => {
             calculator.handleRPN(btn.dataset.rpn);
-        });
-    });
-
-    // Programmer radix base selector (8, 10, 16)
-    document.querySelectorAll('.seg-btn[data-base]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.seg-btn[data-base]').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            const base = parseInt(btn.dataset.base, 10);
-            calculator.setBase(base);
         });
     });
 
