@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apple UI Calculator</title>
+    <title>Apple UI Scientific Calculator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -94,27 +94,15 @@
             <div class="main-display" id="display">0</div>
         </div>
 
-        <!-- Scientific Grid (Shown when Scientific mode selected) -->
-        <div class="keypad scientific-grid hidden" id="scientific-keypad">
-            <button class="key scientific" data-sci="rad">Rad</button>
-            <button class="key scientific" data-sci="sin">sin</button>
-            <button class="key scientific" data-sci="cos">cos</button>
-            <button class="key scientific" data-sci="tan">tan</button>
-            
-            <button class="key scientific" data-sci="ln">ln</button>
-            <button class="key scientific" data-sci="log">log</button>
-            <button class="key scientific" data-sci="pi">π</button>
-            <button class="key scientific" data-sci="e">e</button>
-
-            <button class="key scientific" data-sci="square">x²</button>
-            <button class="key scientific" data-sci="power">xʸ</button>
-            <button class="key scientific" data-sci="sqrt">√x</button>
-            <button class="key scientific" data-sci="factorial">x!</button>
-        </div>
-
-        <!-- Keypad Grid (Basic) -->
-        <div class="keypad">
+        <!-- Keypad Grid (Supports both 4-column Basic and 10-column Scientific layouts) -->
+        <div class="keypad" id="keypad">
             <!-- Row 1 -->
+            <button class="key scientific sci-col" data-action="paren-open">(</button>
+            <button class="key scientific sci-col" data-action="paren-close">)</button>
+            <button class="key scientific sci-col" data-action="mem-clear">mc</button>
+            <button class="key scientific sci-col" data-action="mem-add">m+</button>
+            <button class="key scientific sci-col" data-action="mem-sub">m-</button>
+            <button class="key scientific sci-col" data-action="mem-recall">mr</button>
             <button class="key function" id="backspace-btn" data-action="backspace" aria-label="Backspace">
                 <svg class="backspace-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
@@ -127,24 +115,49 @@
             <button class="key operator" data-action="operator" data-operator="÷">÷</button>
 
             <!-- Row 2 -->
+            <button class="key scientific sci-col" id="btn-2nd" data-action="toggle-2nd">2<sup>nd</sup></button>
+            <button class="key scientific sci-col" data-sci="x2">x²</button>
+            <button class="key scientific sci-col" data-sci="x3">x³</button>
+            <button class="key scientific sci-col" data-sci="yx">y<sup>x</sup></button>
+            <button class="key scientific sci-col" data-sci="xy">x<sup>y</sup></button>
+            <button class="key scientific sci-col" data-sci="2x">2<sup>x</sup></button>
             <button class="key number" data-number="7">7</button>
             <button class="key number" data-number="8">8</button>
             <button class="key number" data-number="9">9</button>
             <button class="key operator" data-action="operator" data-operator="×">×</button>
 
             <!-- Row 3 -->
+            <button class="key scientific sci-col" data-sci="recip"><sup>1</sup>/<sub>x</sub></button>
+            <button class="key scientific sci-col" data-sci="sqrt"><sup>2</sup>√x</button>
+            <button class="key scientific sci-col" data-sci="cbrt"><sup>3</sup>√x</button>
+
+            <button class="key scientific sci-col" data-sci="yroot"><sup>x</sup>√y</button>
+            <button class="key scientific sci-col" data-sci="logy">log<sub>y</sub></button>
+            <button class="key scientific sci-col" data-sci="log2">log<sub>2</sub></button>
             <button class="key number" data-number="4">4</button>
             <button class="key number" data-number="5">5</button>
             <button class="key number" data-number="6">6</button>
             <button class="key operator" data-action="operator" data-operator="-">−</button>
 
             <!-- Row 4 -->
+            <button class="key scientific sci-col" data-sci="fact">x!</button>
+            <button class="key scientific sci-col trig-btn" data-sci="sin">sin</button>
+            <button class="key scientific sci-col trig-btn" data-sci="cos">cos</button>
+            <button class="key scientific sci-col trig-btn" data-sci="tan">tan</button>
+            <button class="key scientific sci-col" data-sci="e"><i>e</i></button>
+            <button class="key scientific sci-col" data-sci="ee">EE</button>
             <button class="key number" data-number="1">1</button>
             <button class="key number" data-number="2">2</button>
             <button class="key number" data-number="3">3</button>
             <button class="key operator" data-action="operator" data-operator="+">+</button>
 
             <!-- Row 5 -->
+            <button class="key scientific sci-col" data-sci="rand">Rand</button>
+            <button class="key scientific sci-col trig-btn" data-sci="sinh">sinh</button>
+            <button class="key scientific sci-col trig-btn" data-sci="cosh">cosh</button>
+            <button class="key scientific sci-col trig-btn" data-sci="tanh">tanh</button>
+            <button class="key scientific sci-col" data-sci="pi">π</button>
+            <button class="key scientific sci-col" id="btn-rad" data-action="toggle-rad">Rad</button>
             <button class="key function" data-action="toggle-sign">
                 <svg class="toggle-sign-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <line x1="5" y1="8" x2="13" y2="8"/>
@@ -155,7 +168,7 @@
             </button>
             <button class="key number" data-number="0">0</button>
             <button class="key number" data-action="decimal">.</button>
-            <button class="key operator" data-action="calculate">=</button>
+            <button class="key operator enter-btn" data-action="calculate">enter</button>
         </div>
     </div>
 

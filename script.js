@@ -4,7 +4,9 @@ class Calculator {
         this.expressionElement = expressionElement;
         this.clearBtnElement = clearBtnElement;
         this.currentMode = 'basic';
-        this.rpnMode = false;
+        this.is2nd = false;
+        this.isRad = true; // Radians vs Degrees
+        this.memory = 0;
         this.reset();
     }
 
@@ -62,7 +64,7 @@ class Calculator {
             if (this.currentValue === '0') {
                 this.currentValue = digit;
             } else {
-                if (this.currentValue.replace(/[^0-9]/g, '').length < 9) {
+                if (this.currentValue.replace(/[^0-9]/g, '').length < 12) {
                     this.currentValue += digit;
                 }
             }
@@ -102,11 +104,14 @@ class Calculator {
         this.updateDisplay();
     }
 
+    // Handle Scientific calculations matching screenshot options
     handleScientific(type) {
         let val = parseFloat(this.currentValue);
-        if (isNaN(val) && type !== 'pi' && type !== 'e') return;
+        if (isNaN(val) && type !== 'pi' && type !== 'e' && type !== 'rand') return;
 
         let res = 0;
+        const radFactor = this.isRad ? 1 : (Math.PI / 180);
+
         switch (type) {
             case 'pi':
                 res = Math.PI;
@@ -116,44 +121,82 @@ class Calculator {
                 res = Math.E;
                 this.expressionStr = 'e';
                 break;
-            case 'sin':
-                res = Math.sin(val);
-                this.expressionStr = `sin(${this.formatNumber(val)})`;
+            case 'rand':
+                res = Math.random();
+                this.expressionStr = 'Rand';
                 break;
-            case 'cos':
-                res = Math.cos(val);
-                this.expressionStr = `cos(${this.formatNumber(val)})`;
-                break;
-            case 'tan':
-                res = Math.tan(val);
-                this.expressionStr = `tan(${this.formatNumber(val)})`;
-                break;
-            case 'ln':
-                if (val <= 0) return this.displayError();
-                res = Math.log(val);
-                this.expressionStr = `ln(${this.formatNumber(val)})`;
-                break;
-            case 'log':
-                if (val <= 0) return this.displayError();
-                res = Math.log10(val);
-                this.expressionStr = `log(${this.formatNumber(val)})`;
-                break;
-            case 'square':
+            case 'x2':
                 res = Math.pow(val, 2);
                 this.expressionStr = `${this.formatNumber(val)}²`;
+                break;
+            case 'x3':
+                res = Math.pow(val, 3);
+                this.expressionStr = `${this.formatNumber(val)}³`;
+                break;
+            case '2x':
+                res = Math.pow(2, val);
+                this.expressionStr = `2^(${this.formatNumber(val)})`;
+                break;
+            case 'recip':
+                if (val === 0) return this.displayError();
+                res = 1 / val;
+                this.expressionStr = `1/(${this.formatNumber(val)})`;
                 break;
             case 'sqrt':
                 if (val < 0) return this.displayError();
                 res = Math.sqrt(val);
                 this.expressionStr = `√(${this.formatNumber(val)})`;
                 break;
-            case 'factorial':
+            case 'cbrt':
+                res = Math.cbrt(val);
+                this.expressionStr = `³√(${this.formatNumber(val)})`;
+                break;
+            case 'log2':
+                if (val <= 0) return this.displayError();
+                res = Math.log2(val);
+                this.expressionStr = `log₂(${this.formatNumber(val)})`;
+                break;
+            case 'fact':
                 if (val < 0 || !Number.isInteger(val)) return this.displayError();
-                res = this.fact(val);
+                res = this.factorial(val);
                 this.expressionStr = `${this.formatNumber(val)}!`;
                 break;
-            case 'power':
+            case 'sin':
+                res = this.is2nd ? Math.asin(val) / radFactor : Math.sin(val * radFactor);
+                this.expressionStr = this.is2nd ? `sin⁻¹(${this.formatNumber(val)})` : `sin(${this.formatNumber(val)})`;
+                break;
+            case 'cos':
+                res = this.is2nd ? Math.acos(val) / radFactor : Math.cos(val * radFactor);
+                this.expressionStr = this.is2nd ? `cos⁻¹(${this.formatNumber(val)})` : `cos(${this.formatNumber(val)})`;
+                break;
+            case 'tan':
+                res = this.is2nd ? Math.atan(val) / radFactor : Math.tan(val * radFactor);
+                this.expressionStr = this.is2nd ? `tan⁻¹(${this.formatNumber(val)})` : `tan(${this.formatNumber(val)})`;
+                break;
+            case 'sinh':
+                res = this.is2nd ? Math.asinh(val) : Math.sinh(val);
+                this.expressionStr = this.is2nd ? `sinh⁻¹(${this.formatNumber(val)})` : `sinh(${this.formatNumber(val)})`;
+                break;
+            case 'cosh':
+                res = this.is2nd ? Math.acosh(val) : Math.cosh(val);
+                this.expressionStr = this.is2nd ? `cosh⁻¹(${this.formatNumber(val)})` : `cosh(${this.formatNumber(val)})`;
+                break;
+            case 'tanh':
+                res = this.is2nd ? Math.atanh(val) : Math.tanh(val);
+                this.expressionStr = this.is2nd ? `tanh⁻¹(${this.formatNumber(val)})` : `tanh(${this.formatNumber(val)})`;
+                break;
+            case 'yx':
+            case 'xy':
                 this.handleOperator('^', null);
+                return;
+            case 'yroot':
+                this.handleOperator('yroot', null);
+                return;
+            case 'logy':
+                this.handleOperator('logy', null);
+                return;
+            case 'ee':
+                this.handleOperator('EE', null);
                 return;
             default:
                 return;
@@ -164,11 +207,25 @@ class Calculator {
         this.updateDisplay();
     }
 
-    fact(n) {
+    factorial(n) {
         if (n === 0 || n === 1) return 1;
-        let result = 1;
-        for (let i = 2; i <= n; i++) result *= i;
-        return result;
+        let res = 1;
+        for (let i = 2; i <= n; i++) res *= i;
+        return res;
+    }
+
+    handleMemory(action) {
+        let val = parseFloat(this.currentValue) || 0;
+        switch (action) {
+            case 'mem-clear': this.memory = 0; break;
+            case 'mem-add': this.memory += val; break;
+            case 'mem-sub': this.memory -= val; break;
+            case 'mem-recall':
+                this.currentValue = this.formatResult(this.memory);
+                this.awaitingNextOperand = true;
+                this.updateDisplay();
+                break;
+        }
     }
 
     handleOperator(nextOperator, operatorButton) {
@@ -252,6 +309,9 @@ class Calculator {
                 if (second === 0) return 'Error';
                 return first / second;
             case '^': return Math.pow(first, second);
+            case 'yroot': return Math.pow(first, 1 / second);
+            case 'logy': return Math.log(first) / Math.log(second);
+            case 'EE': return first * Math.pow(10, second);
             default: return second;
         }
     }
@@ -263,11 +323,11 @@ class Calculator {
         const fixed = parseFloat(number.toFixed(10));
         let str = fixed.toString();
 
-        if (str.length > 9) {
-            if (Math.abs(fixed) >= 1e9 || (Math.abs(fixed) < 1e-6 && fixed !== 0)) {
+        if (str.length > 12) {
+            if (Math.abs(fixed) >= 1e12 || (Math.abs(fixed) < 1e-6 && fixed !== 0)) {
                 str = fixed.toExponential(4);
             } else {
-                str = parseFloat(fixed.toPrecision(8)).toString();
+                str = parseFloat(fixed.toPrecision(10)).toString();
             }
         }
         return str;
@@ -306,11 +366,11 @@ class Calculator {
         }
 
         const length = displayStr.length;
-        if (length > 9) {
-            this.displayElement.style.fontSize = '38px';
+        if (length > 14) {
+            this.displayElement.style.fontSize = '32px';
+        } else if (length > 10) {
+            this.displayElement.style.fontSize = '44px';
         } else if (length > 7) {
-            this.displayElement.style.fontSize = '46px';
-        } else if (length > 5) {
             this.displayElement.style.fontSize = '54px';
         } else {
             this.displayElement.style.fontSize = '64px';
@@ -339,7 +399,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modeBtn = document.getElementById('mode-btn');
     const modeDropdown = document.getElementById('mode-dropdown');
     const calculatorContainer = document.getElementById('calculator-container');
-    const scientificKeypad = document.getElementById('scientific-keypad');
+    const btn2nd = document.getElementById('btn-2nd');
+    const btnRad = document.getElementById('btn-rad');
 
     if (modeBtn && modeDropdown) {
         modeBtn.addEventListener('click', (e) => {
@@ -369,34 +430,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 calculator.currentMode = selectedMode;
 
                 if (selectedMode === 'scientific') {
-                    scientificKeypad.classList.remove('hidden');
                     calculatorContainer.classList.add('scientific-mode');
                 } else {
-                    scientificKeypad.classList.add('hidden');
                     calculatorContainer.classList.remove('scientific-mode');
                 }
 
                 modeDropdown.classList.remove('show');
             });
         });
+    }
 
-        // RPN Mode toggle
-        const rpnItem = document.getElementById('rpn-item');
-        const rpnCheck = document.getElementById('rpn-check');
-        if (rpnItem && rpnCheck) {
-            rpnItem.addEventListener('click', () => {
-                calculator.rpnMode = !calculator.rpnMode;
-                rpnCheck.textContent = calculator.rpnMode ? '✓' : '';
-                modeDropdown.classList.remove('show');
+    // 2nd button toggle listener
+    if (btn2nd) {
+        btn2nd.addEventListener('click', () => {
+            calculator.is2nd = !calculator.is2nd;
+            btn2nd.classList.toggle('active-2nd');
+            
+            document.querySelectorAll('.trig-btn').forEach(btn => {
+                const sci = btn.dataset.sci;
+                if (calculator.is2nd) {
+                    btn.innerHTML = sci.endsWith('h') ? `${sci}<sup>-1</sup>` : `${sci}<sup>-1</sup>`;
+                } else {
+                    btn.textContent = sci;
+                }
             });
-        }
+        });
+    }
+
+    // Rad / Deg button toggle listener
+    if (btnRad) {
+        btnRad.addEventListener('click', () => {
+            calculator.isRad = !calculator.isRad;
+            btnRad.textContent = calculator.isRad ? 'Rad' : 'Deg';
+        });
     }
 
     // Scientific keypad buttons
     document.querySelectorAll('.key.scientific').forEach(btn => {
         btn.addEventListener('click', () => {
             const sciType = btn.dataset.sci;
-            calculator.handleScientific(sciType);
+            const action = btn.dataset.action;
+            if (sciType) {
+                calculator.handleScientific(sciType);
+            } else if (action && action.startsWith('mem-')) {
+                calculator.handleMemory(action);
+            }
         });
     });
 
