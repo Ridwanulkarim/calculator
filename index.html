@@ -60,13 +60,6 @@
 
                     <div class="menu-divider"></div>
 
-                    <div class="menu-item" id="convert-item">
-                        <span class="check-icon"></span>
-                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                            <path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 11L4 7l4-4"/>
-                        </svg>
-                        <span class="item-text">Convert</span>
-                    </div>
                     <div class="menu-item" id="rpn-item">
                         <span class="check-icon" id="rpn-check"></span>
                         <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
@@ -76,19 +69,11 @@
                         </svg>
                         <span class="item-text">RPN Mode</span>
                     </div>
-
-                    <div class="menu-divider"></div>
-
-                    <div class="menu-item" id="notes-item">
-                        <span class="check-icon"></span>
-                        <span class="item-icon font-math">𝒴𝓍</span>
-                        <span class="item-text">Maths Notes...</span>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Programmer Top Bar Controls -->
+        <!-- Programmer Top Controls -->
         <div class="programmer-controls hidden" id="prog-controls">
             <div class="seg-control">
                 <button class="seg-btn active" data-encoding="ascii">ASCII</button>
@@ -120,7 +105,7 @@
             <div class="main-display" id="display">0</div>
         </div>
 
-        <!-- RPN Mode Top Stack Controls (x↔y, R↓, R↑, drop) matching screenshot -->
+        <!-- RPN Mode Controls -->
         <div class="rpn-controls hidden" id="rpn-controls">
             <button class="key rpn-btn" data-rpn="swap">x↔y</button>
             <button class="key rpn-btn" data-rpn="rolldown">R↓</button>
@@ -128,105 +113,40 @@
             <button class="key rpn-btn" data-rpn="drop">drop</button>
         </div>
 
-        <!-- Keypad Grid (Supports 4-col Basic, 10-col Scientific, and 7-col Programmer layouts) -->
-        <div class="keypad" id="keypad">
+        <!-- 1. BASIC KEYPAD (Clean 4x5 grid for Basic mode) -->
+        <div class="keypad basic-keypad" id="basic-keypad">
             <!-- Row 1 -->
-            <button class="key scientific sci-col" data-action="paren-open">(</button>
-            <button class="key scientific sci-col" data-action="paren-close">)</button>
-            <button class="key scientific sci-col" data-action="mem-clear">mc</button>
-            <button class="key scientific sci-col" data-action="mem-add">m+</button>
-            <button class="key scientific sci-col" data-action="mem-sub">m-</button>
-            <button class="key scientific sci-col" data-action="mem-recall">mr</button>
-
-            <!-- Programmer Row 1 extra keys -->
-            <button class="key prog-col function" data-action="paren-open">(</button>
-            <button class="key prog-col function" data-action="paren-close">)</button>
-            <button class="key prog-col hex-btn" data-hex="D">D</button>
-            <button class="key prog-col hex-btn" data-hex="E">E</button>
-            <button class="key prog-col hex-btn" data-hex="F">F</button>
-
-            <button class="key function" id="backspace-btn" data-action="backspace" aria-label="Backspace">
+            <button class="key function" data-action="backspace" aria-label="Backspace">
                 <svg class="backspace-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
                     <line x1="18" y1="9" x2="12" y2="15"/>
                     <line x1="12" y1="9" x2="18" y2="15"/>
                 </svg>
             </button>
-            <button class="key function" id="clear-btn" data-action="clear">AC</button>
-            <button class="key function basic-sci-col" data-action="percent">%</button>
+            <button class="key function clear-btn" data-action="clear">AC</button>
+            <button class="key function" data-action="percent">%</button>
             <button class="key operator" data-action="operator" data-operator="÷">÷</button>
 
             <!-- Row 2 -->
-            <button class="key scientific sci-col" id="btn-2nd" data-action="toggle-2nd">2<sup>nd</sup></button>
-            <button class="key scientific sci-col" data-sci="x2">x²</button>
-            <button class="key scientific sci-col" data-sci="x3">x³</button>
-            <button class="key scientific sci-col" data-sci="yx">y<sup>x</sup></button>
-            <button class="key scientific sci-col" data-sci="xy">x<sup>y</sup></button>
-            <button class="key scientific sci-col" data-sci="2x">2<sup>x</sup></button>
-
-            <!-- Programmer Row 2 extra keys -->
-            <button class="key prog-col function" data-prog="AND">AND</button>
-            <button class="key prog-col function" data-prog="OR">OR</button>
-            <button class="key prog-col function" data-prog="XOR">XOR</button>
-            <button class="key prog-col hex-btn" data-hex="A">A</button>
-            <button class="key prog-col hex-btn" data-hex="B">B</button>
-            <button class="key prog-col hex-btn" data-hex="C">C</button>
-
             <button class="key number" data-number="7">7</button>
             <button class="key number" data-number="8">8</button>
             <button class="key number" data-number="9">9</button>
             <button class="key operator" data-action="operator" data-operator="×">×</button>
 
             <!-- Row 3 -->
-            <button class="key scientific sci-col" data-sci="recip"><sup>1</sup>/<sub>x</sub></button>
-            <button class="key scientific sci-col" data-sci="sqrt"><sup>2</sup>√x</button>
-            <button class="key scientific sci-col" data-sci="cbrt"><sup>3</sup>√x</button>
-            <button class="key scientific sci-col" data-sci="yroot"><sup>x</sup>√y</button>
-            <button class="key scientific sci-col" data-sci="logy">log<sub>y</sub></button>
-            <button class="key scientific sci-col" data-sci="log2">log<sub>2</sub></button>
-
-            <!-- Programmer Row 3 extra keys -->
-            <button class="key prog-col function" data-prog="NOR">NOR</button>
-            <button class="key prog-col function" data-prog="shl">&lt;&lt;</button>
-            <button class="key prog-col function" data-prog="shr">&gt;&gt;</button>
-
             <button class="key number" data-number="4">4</button>
             <button class="key number" data-number="5">5</button>
             <button class="key number" data-number="6">6</button>
             <button class="key operator" data-action="operator" data-operator="-">−</button>
 
             <!-- Row 4 -->
-            <button class="key scientific sci-col" data-sci="fact">x!</button>
-            <button class="key scientific sci-col trig-btn" data-sci="sin">sin</button>
-            <button class="key scientific sci-col trig-btn" data-sci="cos">cos</button>
-            <button class="key scientific sci-col trig-btn" data-sci="tan">tan</button>
-            <button class="key scientific sci-col" data-sci="e"><i>e</i></button>
-            <button class="key scientific sci-col" data-sci="ee">EE</button>
-
-            <!-- Programmer Row 4 extra keys -->
-            <button class="key prog-col function" data-prog="NOT">NOT</button>
-            <button class="key prog-col function" data-prog="xshl">X&lt;&lt;Y</button>
-            <button class="key prog-col function" data-prog="xshr">X&gt;&gt;Y</button>
-
             <button class="key number" data-number="1">1</button>
             <button class="key number" data-number="2">2</button>
             <button class="key number" data-number="3">3</button>
             <button class="key operator" data-action="operator" data-operator="+">+</button>
 
             <!-- Row 5 -->
-            <button class="key scientific sci-col" data-sci="rand">Rand</button>
-            <button class="key scientific sci-col trig-btn" data-sci="sinh">sinh</button>
-            <button class="key scientific sci-col trig-btn" data-sci="cosh">cosh</button>
-            <button class="key scientific sci-col trig-btn" data-sci="tanh">tanh</button>
-            <button class="key scientific sci-col" data-sci="pi">π</button>
-            <button class="key scientific sci-col" id="btn-rad" data-action="toggle-rad">Rad</button>
-
-            <!-- Programmer Row 5 extra keys -->
-            <button class="key prog-col function" data-prog="NEG">NEG</button>
-            <button class="key prog-col function" data-prog="RoL">RoL</button>
-            <button class="key prog-col function" data-prog="RoR">RoR</button>
-
-            <button class="key function basic-sci-col" data-action="toggle-sign">
+            <button class="key function" data-action="toggle-sign">
                 <svg class="toggle-sign-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                     <line x1="5" y1="8" x2="13" y2="8"/>
                     <line x1="9" y1="4" x2="9" y2="12"/>
@@ -236,14 +156,146 @@
             </button>
             <button class="key number" data-number="0">0</button>
             <button class="key number" data-action="decimal">.</button>
-            <button class="key operator enter-btn" id="equals-btn" data-action="calculate">=</button>
+            <button class="key operator equals-btn" data-action="calculate">=</button>
+        </div>
 
-            <!-- Programmer Row 6 extra keys -->
-            <button class="key prog-col function" data-prog="mod">mod</button>
-            <button class="key prog-col function" data-prog="flip8">flip<sub>8</sub></button>
-            <button class="key prog-col function" data-prog="flip16">flip<sub>16</sub></button>
-            <button class="key prog-col number" data-hex="FF">FF</button>
-            <button class="key prog-col number" data-number="00">00</button>
+        <!-- 2. SCIENTIFIC KEYPAD (10x5 grid for Scientific mode) -->
+        <div class="keypad scientific-keypad hidden" id="scientific-keypad">
+            <!-- Row 1 -->
+            <button class="key scientific" data-action="paren-open">(</button>
+            <button class="key scientific" data-action="paren-close">)</button>
+            <button class="key scientific" data-action="mem-clear">mc</button>
+            <button class="key scientific" data-action="mem-add">m+</button>
+            <button class="key scientific" data-action="mem-sub">m-</button>
+            <button class="key scientific" data-action="mem-recall">mr</button>
+            <button class="key function" data-action="backspace" aria-label="Backspace">
+                <svg class="backspace-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+                    <line x1="18" y1="9" x2="12" y2="15"/>
+                    <line x1="12" y1="9" x2="18" y2="15"/>
+                </svg>
+            </button>
+            <button class="key function clear-btn" data-action="clear">AC</button>
+            <button class="key function" data-action="percent">%</button>
+            <button class="key operator" data-action="operator" data-operator="÷">÷</button>
+
+            <!-- Row 2 -->
+            <button class="key scientific btn-2nd" data-action="toggle-2nd">2<sup>nd</sup></button>
+            <button class="key scientific" data-sci="x2">x²</button>
+            <button class="key scientific" data-sci="x3">x³</button>
+            <button class="key scientific" data-sci="yx">y<sup>x</sup></button>
+            <button class="key scientific" data-sci="xy">x<sup>y</sup></button>
+            <button class="key scientific" data-sci="2x">2<sup>x</sup></button>
+            <button class="key number" data-number="7">7</button>
+            <button class="key number" data-number="8">8</button>
+            <button class="key number" data-number="9">9</button>
+            <button class="key operator" data-action="operator" data-operator="×">×</button>
+
+            <!-- Row 3 -->
+            <button class="key scientific" data-sci="recip"><sup>1</sup>/<sub>x</sub></button>
+            <button class="key scientific" data-sci="sqrt"><sup>2</sup>√x</button>
+            <button class="key scientific" data-sci="cbrt"><sup>3</sup>√x</button>
+            <button class="key scientific" data-sci="yroot"><sup>x</sup>√y</button>
+            <button class="key scientific" data-sci="logy">log<sub>y</sub></button>
+            <button class="key scientific" data-sci="log2">log<sub>2</sub></button>
+            <button class="key number" data-number="4">4</button>
+            <button class="key number" data-number="5">5</button>
+            <button class="key number" data-number="6">6</button>
+            <button class="key operator" data-action="operator" data-operator="-">−</button>
+
+            <!-- Row 4 -->
+            <button class="key scientific" data-sci="fact">x!</button>
+            <button class="key scientific trig-btn" data-sci="sin">sin</button>
+            <button class="key scientific trig-btn" data-sci="cos">cos</button>
+            <button class="key scientific trig-btn" data-sci="tan">tan</button>
+            <button class="key scientific" data-sci="e"><i>e</i></button>
+            <button class="key scientific" data-sci="ee">EE</button>
+            <button class="key number" data-number="1">1</button>
+            <button class="key number" data-number="2">2</button>
+            <button class="key number" data-number="3">3</button>
+            <button class="key operator" data-action="operator" data-operator="+">+</button>
+
+            <!-- Row 5 -->
+            <button class="key scientific" data-sci="rand">Rand</button>
+            <button class="key scientific trig-btn" data-sci="sinh">sinh</button>
+            <button class="key scientific trig-btn" data-sci="cosh">cosh</button>
+            <button class="key scientific trig-btn" data-sci="tanh">tanh</button>
+            <button class="key scientific" data-sci="pi">π</button>
+            <button class="key scientific btn-rad" data-action="toggle-rad">Rad</button>
+            <button class="key function" data-action="toggle-sign">
+                <svg class="toggle-sign-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="5" y1="8" x2="13" y2="8"/>
+                    <line x1="9" y1="4" x2="9" y2="12"/>
+                    <line x1="14" y1="18" x2="20" y2="12"/>
+                    <line x1="5" y1="18" x2="13" y2="18"/>
+                </svg>
+            </button>
+            <button class="key number" data-number="0">0</button>
+            <button class="key number" data-action="decimal">.</button>
+            <button class="key operator equals-btn" data-action="calculate">=</button>
+        </div>
+
+        <!-- 3. PROGRAMMER KEYPAD (7x6 grid for Programmer mode) -->
+        <div class="keypad programmer-keypad hidden" id="programmer-keypad">
+            <!-- Row 1 -->
+            <button class="key function" data-action="paren-open">(</button>
+            <button class="key function" data-action="paren-close">)</button>
+            <button class="key hex-btn" data-hex="D">D</button>
+            <button class="key hex-btn" data-hex="E">E</button>
+            <button class="key hex-btn" data-hex="F">F</button>
+            <button class="key function" data-action="backspace" aria-label="Backspace">
+                <svg class="backspace-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+                    <line x1="18" y1="9" x2="12" y2="15"/>
+                    <line x1="12" y1="9" x2="18" y2="15"/>
+                </svg>
+            </button>
+            <button class="key function clear-btn" data-action="clear">AC</button>
+
+            <!-- Row 2 -->
+            <button class="key function" data-prog="AND">AND</button>
+            <button class="key function" data-prog="OR">OR</button>
+            <button class="key function" data-prog="XOR">XOR</button>
+            <button class="key hex-btn" data-hex="A">A</button>
+            <button class="key hex-btn" data-hex="B">B</button>
+            <button class="key hex-btn" data-hex="C">C</button>
+            <button class="key operator" data-action="operator" data-operator="÷">÷</button>
+
+            <!-- Row 3 -->
+            <button class="key function" data-prog="NOR">NOR</button>
+            <button class="key function" data-prog="shl">&lt;&lt;</button>
+            <button class="key function" data-prog="shr">&gt;&gt;</button>
+            <button class="key number" data-number="7">7</button>
+            <button class="key number" data-number="8">8</button>
+            <button class="key number" data-number="9">9</button>
+            <button class="key operator" data-action="operator" data-operator="×">×</button>
+
+            <!-- Row 4 -->
+            <button class="key function" data-prog="NOT">NOT</button>
+            <button class="key function" data-prog="xshl">X&lt;&lt;Y</button>
+            <button class="key function" data-prog="xshr">X&gt;&gt;Y</button>
+            <button class="key number" data-number="4">4</button>
+            <button class="key number" data-number="5">5</button>
+            <button class="key number" data-number="6">6</button>
+            <button class="key operator" data-action="operator" data-operator="-">−</button>
+
+            <!-- Row 5 -->
+            <button class="key function" data-prog="NEG">NEG</button>
+            <button class="key function" data-prog="RoL">RoL</button>
+            <button class="key function" data-prog="RoR">RoR</button>
+            <button class="key number" data-number="1">1</button>
+            <button class="key number" data-number="2">2</button>
+            <button class="key number" data-number="3">3</button>
+            <button class="key operator" data-action="operator" data-operator="+">+</button>
+
+            <!-- Row 6 -->
+            <button class="key function" data-prog="mod">mod</button>
+            <button class="key function" data-prog="flip8">flip<sub>8</sub></button>
+            <button class="key function" data-prog="flip16">flip<sub>16</sub></button>
+            <button class="key hex-btn" data-hex="FF">FF</button>
+            <button class="key number" data-number="0">0</button>
+            <button class="key number" data-number="00">00</button>
+            <button class="key operator equals-btn" data-action="calculate">=</button>
         </div>
     </div>
 

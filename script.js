@@ -1,8 +1,8 @@
 class Calculator {
-    constructor(displayElement, expressionElement, clearBtnElement) {
+    constructor(displayElement, expressionElement, clearBtnElements) {
         this.displayElement = displayElement;
         this.expressionElement = expressionElement;
-        this.clearBtnElement = clearBtnElement;
+        this.clearBtnElements = clearBtnElements;
         this.currentMode = 'basic';
         this.currentBase = 16;
         this.showBinary = true;
@@ -54,8 +54,9 @@ class Calculator {
     }
 
     updateClearBtnText() {
-        if (this.clearBtnElement) {
-            this.clearBtnElement.textContent = (this.currentValue !== '0' || this.awaitingNextOperand) ? 'C' : 'AC';
+        if (this.clearBtnElements) {
+            const txt = (this.currentValue !== '0' || this.awaitingNextOperand) ? 'C' : 'AC';
+            this.clearBtnElements.forEach(btn => btn.textContent = txt);
         }
     }
 
@@ -110,10 +111,8 @@ class Calculator {
         this.updateDisplay();
     }
 
-    // RPN Mode Stack Operations (x↔y, R↓, R↑, drop) matching screenshot
     handleRPN(action) {
         if (!this.rpnMode) return;
-
         let val = parseFloat(this.currentValue);
 
         switch (action) {
@@ -246,7 +245,6 @@ class Calculator {
 
     handleOperator(nextOperator, operatorButton) {
         if (this.rpnMode) {
-            // RPN Mode binary operator execution on stack top 2 elements
             let y = parseFloat(this.currentValue);
             let x = this.rpnStack.length > 0 ? this.rpnStack.pop() : y;
 
@@ -297,7 +295,6 @@ class Calculator {
 
     compute() {
         if (this.rpnMode) {
-            // RPN Enter key: pushes current value to stack
             let val = parseFloat(this.currentValue);
             if (!isNaN(val)) {
                 this.rpnStack.push(val);
@@ -492,18 +489,23 @@ class Calculator {
 document.addEventListener('DOMContentLoaded', () => {
     const displayElement = document.getElementById('display');
     const expressionElement = document.getElementById('expression');
-    const clearBtnElement = document.getElementById('clear-btn');
-    const calculator = new Calculator(displayElement, expressionElement, clearBtnElement);
+    const clearBtnElements = document.querySelectorAll('.clear-btn');
+    const calculator = new Calculator(displayElement, expressionElement, clearBtnElements);
 
-    // Mode dropdown popover control
-    const modeBtn = document.getElementById('mode-btn');
-    const modeDropdown = document.getElementById('mode-dropdown');
+    // Keypads
+    const basicKeypad = document.getElementById('basic-keypad');
+    const scientificKeypad = document.getElementById('scientific-keypad');
+    const programmerKeypad = document.getElementById('programmer-keypad');
     const calculatorContainer = document.getElementById('calculator-container');
     const progControls = document.getElementById('prog-controls');
     const binaryGrid = document.getElementById('binary-grid');
     const rpnControls = document.getElementById('rpn-controls');
-    const equalsBtn = document.getElementById('equals-btn');
+    const equalsBtns = document.querySelectorAll('.equals-btn');
     const rpnCheck = document.getElementById('rpn-check');
+
+    // Mode dropdown popover control
+    const modeBtn = document.getElementById('mode-btn');
+    const modeDropdown = document.getElementById('mode-dropdown');
 
     if (modeBtn && modeDropdown) {
         modeBtn.addEventListener('click', (e) => {
@@ -532,17 +534,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.classList.add('active');
                 calculator.currentMode = selectedMode;
 
+                // Hide all keypads first
+                basicKeypad.classList.add('hidden');
+                scientificKeypad.classList.add('hidden');
+                programmerKeypad.classList.add('hidden');
+
                 calculatorContainer.classList.remove('scientific-mode', 'programmer-mode');
                 progControls.classList.add('hidden');
                 binaryGrid.classList.add('hidden');
 
                 if (selectedMode === 'scientific') {
+                    scientificKeypad.classList.remove('hidden');
                     calculatorContainer.classList.add('scientific-mode');
                 } else if (selectedMode === 'programmer') {
+                    programmerKeypad.classList.remove('hidden');
                     calculatorContainer.classList.add('programmer-mode');
                     progControls.classList.remove('hidden');
                     if (calculator.showBinary) binaryGrid.classList.remove('hidden');
                     calculator.setBase(calculator.currentBase);
+                } else {
+                    basicKeypad.classList.remove('hidden');
                 }
 
                 modeDropdown.classList.remove('show');
@@ -551,23 +562,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // RPN Mode toggle
         const rpnItem = document.getElementById('rpn-item');
-        if (rpnItem && rpnCheck && rpnControls && equalsBtn) {
+        if (rpnItem && rpnCheck && rpnControls) {
             rpnItem.addEventListener('click', () => {
                 calculator.rpnMode = !calculator.rpnMode;
                 rpnCheck.textContent = calculator.rpnMode ? '✓' : '';
                 
                 if (calculator.rpnMode) {
                     rpnControls.classList.remove('hidden');
-                    equalsBtn.textContent = 'enter';
+                    equalsBtns.forEach(btn => btn.textContent = 'enter');
                 } else {
                     rpnControls.classList.add('hidden');
-                    equalsBtn.textContent = '=';
+                    equalsBtns.forEach(btn => btn.textContent = '=');
                 }
 
                 calculator.updateDisplay();
                 modeDropdown.classList.remove('show');
             });
         }
+    }
+
+    // 2nd button toggle listener
+    const btn2nd = document.querySelector('.btn-2nd');
+    if (btn2nd) {
+        btn2nd.addEventListener('click', () => {
+            calculator.is2nd = !calculator.is2nd;
+            btn2nd.classList.toggle('active-2nd');
+            
+            document.querySelectorAll('.trig-btn').forEach(btn => {
+                const sci = btn.dataset.sci;
+                if (calculator.is2nd) {
+                    btn.innerHTML = `${sci}<sup>-1</sup>`;
+                } else {
+                    btn.textContent = sci;
+                }
+            });
+        });
+    }
+
+    // Rad / Deg button toggle listener
+    const btnRad = document.querySelector('.btn-rad');
+    if (btnRad) {
+        btnRad.addEventListener('click', () => {
+            calculator.isRad = !calculator.isRad;
+            btnRad.textContent = calculator.isRad ? 'Rad' : 'Deg';
+        });
     }
 
     // RPN stack button listeners
@@ -613,8 +651,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Basic Keypad button listeners
-    document.querySelectorAll('.key:not(.scientific):not(.prog-col):not(.rpn-btn)').forEach(button => {
+    // Generic button click handlers
+    document.querySelectorAll('.key').forEach(button => {
         button.addEventListener('click', (e) => {
             const target = e.currentTarget;
             const number = target.dataset.number;

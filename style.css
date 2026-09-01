@@ -37,6 +37,10 @@ body {
     width: 580px;
 }
 
+.hidden {
+    display: none !important;
+}
+
 /* Top Control Bar */
 .top-bar {
     display: flex;
@@ -169,10 +173,6 @@ body {
     margin-bottom: 8px;
 }
 
-.programmer-controls.hidden {
-    display: none;
-}
-
 .seg-control {
     display: flex;
     background-color: #1c1c1e;
@@ -231,10 +231,6 @@ body {
     font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
 }
 
-.binary-grid.hidden {
-    display: none;
-}
-
 .bit-row {
     display: flex;
     justify-content: space-between;
@@ -256,16 +252,12 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* RPN Mode Controls (x↔y, R↓, R↑, drop) matching screenshot */
+/* RPN Mode Controls (x↔y, R↓, R↑, drop) */
 .rpn-controls {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-bottom: 12px;
-}
-
-.rpn-controls.hidden {
-    display: none;
 }
 
 .key.rpn-btn {
@@ -312,37 +304,24 @@ body {
     transition: font-size 0.15s ease;
 }
 
-/* Keypad Grid (4-col basic default, 10-col scientific, 7-col programmer) */
+/* Dedicated Keypad Layouts */
 .keypad {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
 }
 
-.scientific-mode .keypad {
+.basic-keypad {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.scientific-keypad {
     grid-template-columns: repeat(10, 1fr);
     gap: 10px;
 }
 
-.programmer-mode .keypad {
+.programmer-keypad {
     grid-template-columns: repeat(7, 1fr);
     gap: 10px;
-}
-
-.sci-col, .prog-col {
-    display: none;
-}
-
-.scientific-mode .sci-col {
-    display: flex;
-}
-
-.programmer-mode .prog-col {
-    display: flex;
-}
-
-.programmer-mode .basic-sci-col {
-    display: none;
 }
 
 .key {
@@ -363,11 +342,31 @@ body {
     transform: scale(0.94);
 }
 
-.scientific-mode .key, .programmer-mode .key {
+.scientific-keypad .key, .programmer-keypad .key {
     font-size: 18px;
 }
 
-/* Key styles matching Programmer mode screenshot */
+/* Key styles */
+.key.scientific {
+    background-color: #3a3a3c;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+.key.scientific:active {
+    background-color: #5b5b5e;
+}
+
+.key.scientific.active-2nd {
+    background-color: #707074;
+}
+
+.key.scientific sub, .key.scientific sup {
+    font-size: 11px;
+    line-height: 0;
+}
+
 .key.function {
     background-color: #505054;
     color: #ffffff;
@@ -426,7 +425,6 @@ body {
     color: #ff9f0a;
 }
 
-.key.operator.enter-btn {
-    font-size: 16px;
-    font-weight: 500;
+.key.operator.equals-btn {
+    font-size: 28px;
 }
