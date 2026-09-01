@@ -4,8 +4,10 @@ class Calculator {
         this.expressionElement = expressionElement;
         this.clearBtnElement = clearBtnElement;
         this.currentMode = 'basic';
+        this.currentBase = 16; // 8, 10, or 16 for Programmer mode
+        this.showBinary = true;
         this.is2nd = false;
-        this.isRad = true; // Radians vs Degrees
+        this.isRad = true;
         this.memory = 0;
         this.reset();
     }
@@ -64,7 +66,7 @@ class Calculator {
             if (this.currentValue === '0') {
                 this.currentValue = digit;
             } else {
-                if (this.currentValue.replace(/[^0-9]/g, '').length < 12) {
+                if (this.currentValue.replace(/[^0-9A-Fa-f]/g, '').length < 16) {
                     this.currentValue += digit;
                 }
             }
@@ -74,6 +76,7 @@ class Calculator {
     }
 
     inputDecimal() {
+        if (this.currentMode === 'programmer') return; // Decimal point disabled in integer Programmer mode
         this.clearActiveOperator();
 
         if (this.awaitingNextOperand) {
@@ -104,7 +107,64 @@ class Calculator {
         this.updateDisplay();
     }
 
-    // Handle Scientific calculations matching screenshot options
+    // Handle Programmer Mode Bitwise Operations matching screenshot
+    handleProgrammer(op) {
+        let val = parseInt(this.currentValue, this.currentBase);
+        if (isNaN(val)) return;
+
+        let res = 0;
+        switch (op) {
+            case 'NOT':
+                res = ~val;
+                this.expressionStr = `NOT(${this.currentValue})`;
+                break;
+            case 'NEG':
+                res = -val;
+                this.expressionStr = `NEG(${this.currentValue})`;
+                break;
+            case 'shl':
+                res = val << 1;
+                this.expressionStr = `${this.currentValue} << 1`;
+                break;
+            case 'shr':
+                res = val >> 1;
+                this.expressionStr = `${this.currentValue} >> 1`;
+                break;
+            case 'RoL':
+                res = (val << 1) | (val >>> 31);
+                this.expressionStr = `RoL(${this.currentValue})`;
+                break;
+            case 'RoR':
+                res = (val >>> 1) | (val << 31);
+                this.expressionStr = `RoR(${this.currentValue})`;
+                break;
+            case 'flip8':
+                res = ((val & 0xFF) << 8) | ((val >> 8) & 0xFF);
+                this.expressionStr = `flip8(${this.currentValue})`;
+                break;
+            case 'flip16':
+                res = ((val & 0xFFFF) << 16) | ((val >> 16) & 0xFFFF);
+                this.expressionStr = `flip16(${this.currentValue})`;
+                break;
+            case 'AND':
+            case 'OR':
+            case 'XOR':
+            case 'NOR':
+            case 'xshl':
+            case 'xshr':
+            case 'mod':
+                this.handleOperator(op, null);
+                return;
+            default:
+                return;
+        }
+
+        this.currentValue = res.toString(this.currentBase).toUpperCase();
+        this.awaitingNextOperand = true;
+        this.updateDisplay();
+    }
+
+    // Handle Scientific calculations
     handleScientific(type) {
         let val = parseFloat(this.currentValue);
         if (isNaN(val) && type !== 'pi' && type !== 'e' && type !== 'rand') return;
@@ -113,93 +173,28 @@ class Calculator {
         const radFactor = this.isRad ? 1 : (Math.PI / 180);
 
         switch (type) {
-            case 'pi':
-                res = Math.PI;
-                this.expressionStr = 'π';
-                break;
-            case 'e':
-                res = Math.E;
-                this.expressionStr = 'e';
-                break;
-            case 'rand':
-                res = Math.random();
-                this.expressionStr = 'Rand';
-                break;
-            case 'x2':
-                res = Math.pow(val, 2);
-                this.expressionStr = `${this.formatNumber(val)}²`;
-                break;
-            case 'x3':
-                res = Math.pow(val, 3);
-                this.expressionStr = `${this.formatNumber(val)}³`;
-                break;
-            case '2x':
-                res = Math.pow(2, val);
-                this.expressionStr = `2^(${this.formatNumber(val)})`;
-                break;
-            case 'recip':
-                if (val === 0) return this.displayError();
-                res = 1 / val;
-                this.expressionStr = `1/(${this.formatNumber(val)})`;
-                break;
-            case 'sqrt':
-                if (val < 0) return this.displayError();
-                res = Math.sqrt(val);
-                this.expressionStr = `√(${this.formatNumber(val)})`;
-                break;
-            case 'cbrt':
-                res = Math.cbrt(val);
-                this.expressionStr = `³√(${this.formatNumber(val)})`;
-                break;
-            case 'log2':
-                if (val <= 0) return this.displayError();
-                res = Math.log2(val);
-                this.expressionStr = `log₂(${this.formatNumber(val)})`;
-                break;
-            case 'fact':
-                if (val < 0 || !Number.isInteger(val)) return this.displayError();
-                res = this.factorial(val);
-                this.expressionStr = `${this.formatNumber(val)}!`;
-                break;
-            case 'sin':
-                res = this.is2nd ? Math.asin(val) / radFactor : Math.sin(val * radFactor);
-                this.expressionStr = this.is2nd ? `sin⁻¹(${this.formatNumber(val)})` : `sin(${this.formatNumber(val)})`;
-                break;
-            case 'cos':
-                res = this.is2nd ? Math.acos(val) / radFactor : Math.cos(val * radFactor);
-                this.expressionStr = this.is2nd ? `cos⁻¹(${this.formatNumber(val)})` : `cos(${this.formatNumber(val)})`;
-                break;
-            case 'tan':
-                res = this.is2nd ? Math.atan(val) / radFactor : Math.tan(val * radFactor);
-                this.expressionStr = this.is2nd ? `tan⁻¹(${this.formatNumber(val)})` : `tan(${this.formatNumber(val)})`;
-                break;
-            case 'sinh':
-                res = this.is2nd ? Math.asinh(val) : Math.sinh(val);
-                this.expressionStr = this.is2nd ? `sinh⁻¹(${this.formatNumber(val)})` : `sinh(${this.formatNumber(val)})`;
-                break;
-            case 'cosh':
-                res = this.is2nd ? Math.acosh(val) : Math.cosh(val);
-                this.expressionStr = this.is2nd ? `cosh⁻¹(${this.formatNumber(val)})` : `cosh(${this.formatNumber(val)})`;
-                break;
-            case 'tanh':
-                res = this.is2nd ? Math.atanh(val) : Math.tanh(val);
-                this.expressionStr = this.is2nd ? `tanh⁻¹(${this.formatNumber(val)})` : `tanh(${this.formatNumber(val)})`;
-                break;
-            case 'yx':
-            case 'xy':
-                this.handleOperator('^', null);
-                return;
-            case 'yroot':
-                this.handleOperator('yroot', null);
-                return;
-            case 'logy':
-                this.handleOperator('logy', null);
-                return;
-            case 'ee':
-                this.handleOperator('EE', null);
-                return;
-            default:
-                return;
+            case 'pi': res = Math.PI; this.expressionStr = 'π'; break;
+            case 'e': res = Math.E; this.expressionStr = 'e'; break;
+            case 'rand': res = Math.random(); this.expressionStr = 'Rand'; break;
+            case 'x2': res = Math.pow(val, 2); this.expressionStr = `${this.formatNumber(val)}²`; break;
+            case 'x3': res = Math.pow(val, 3); this.expressionStr = `${this.formatNumber(val)}³`; break;
+            case '2x': res = Math.pow(2, val); this.expressionStr = `2^(${this.formatNumber(val)})`; break;
+            case 'recip': if (val === 0) return this.displayError(); res = 1 / val; this.expressionStr = `1/(${this.formatNumber(val)})`; break;
+            case 'sqrt': if (val < 0) return this.displayError(); res = Math.sqrt(val); this.expressionStr = `√(${this.formatNumber(val)})`; break;
+            case 'cbrt': res = Math.cbrt(val); this.expressionStr = `³√(${this.formatNumber(val)})`; break;
+            case 'log2': if (val <= 0) return this.displayError(); res = Math.log2(val); this.expressionStr = `log₂(${this.formatNumber(val)})`; break;
+            case 'fact': if (val < 0 || !Number.isInteger(val)) return this.displayError(); res = this.factorial(val); this.expressionStr = `${this.formatNumber(val)}!`; break;
+            case 'sin': res = this.is2nd ? Math.asin(val) / radFactor : Math.sin(val * radFactor); this.expressionStr = this.is2nd ? `sin⁻¹(${this.formatNumber(val)})` : `sin(${this.formatNumber(val)})`; break;
+            case 'cos': res = this.is2nd ? Math.acos(val) / radFactor : Math.cos(val * radFactor); this.expressionStr = this.is2nd ? `cos⁻¹(${this.formatNumber(val)})` : `cos(${this.formatNumber(val)})`; break;
+            case 'tan': res = this.is2nd ? Math.atan(val) / radFactor : Math.tan(val * radFactor); this.expressionStr = this.is2nd ? `tan⁻¹(${this.formatNumber(val)})` : `tan(${this.formatNumber(val)})`; break;
+            case 'sinh': res = this.is2nd ? Math.asinh(val) : Math.sinh(val); this.expressionStr = this.is2nd ? `sinh⁻¹(${this.formatNumber(val)})` : `sinh(${this.formatNumber(val)})`; break;
+            case 'cosh': res = this.is2nd ? Math.acosh(val) : Math.cosh(val); this.expressionStr = this.is2nd ? `cosh⁻¹(${this.formatNumber(val)})` : `cosh(${this.formatNumber(val)})`; break;
+            case 'tanh': res = this.is2nd ? Math.atanh(val) : Math.tanh(val); this.expressionStr = this.is2nd ? `tanh⁻¹(${this.formatNumber(val)})` : `tanh(${this.formatNumber(val)})`; break;
+            case 'yx': case 'xy': this.handleOperator('^', null); return;
+            case 'yroot': this.handleOperator('yroot', null); return;
+            case 'logy': this.handleOperator('logy', null); return;
+            case 'ee': this.handleOperator('EE', null); return;
+            default: return;
         }
 
         this.currentValue = this.formatResult(res);
@@ -229,7 +224,9 @@ class Calculator {
     }
 
     handleOperator(nextOperator, operatorButton) {
-        const inputValue = parseFloat(this.currentValue);
+        let inputValue = (this.currentMode === 'programmer') 
+            ? parseInt(this.currentValue, this.currentBase) 
+            : parseFloat(this.currentValue);
 
         if (this.operator && this.awaitingNextOperand) {
             this.operator = nextOperator;
@@ -247,8 +244,10 @@ class Calculator {
                 this.displayError();
                 return;
             }
-            this.currentValue = this.formatResult(result);
-            this.previousValue = parseFloat(this.currentValue);
+            this.currentValue = (this.currentMode === 'programmer') 
+                ? result.toString(this.currentBase).toUpperCase() 
+                : this.formatResult(result);
+            this.previousValue = (this.currentMode === 'programmer') ? result : parseFloat(this.currentValue);
         }
 
         this.awaitingNextOperand = true;
@@ -261,7 +260,9 @@ class Calculator {
     }
 
     compute() {
-        let inputValue = parseFloat(this.currentValue);
+        let inputValue = (this.currentMode === 'programmer') 
+            ? parseInt(this.currentValue, this.currentBase) 
+            : parseFloat(this.currentValue);
 
         if (this.operator !== null) {
             if (this.awaitingNextOperand && this.lastOperand !== null) {
@@ -279,19 +280,12 @@ class Calculator {
                 return;
             }
 
-            this.currentValue = this.formatResult(result);
-            this.previousValue = parseFloat(this.currentValue);
+            this.currentValue = (this.currentMode === 'programmer') 
+                ? result.toString(this.currentBase).toUpperCase() 
+                : this.formatResult(result);
+            this.previousValue = (this.currentMode === 'programmer') ? result : parseFloat(this.currentValue);
             this.operator = null;
             this.awaitingNextOperand = true;
-        } else if (this.lastOperator && this.lastOperand !== null) {
-            this.expressionStr = `${this.formatNumber(inputValue)}${this.lastOperator}${this.formatNumber(this.lastOperand)}`;
-            const result = this.calculate(inputValue, this.lastOperand, this.lastOperator);
-            if (result === 'Error') {
-                this.displayError();
-                return;
-            }
-            this.currentValue = this.formatResult(result);
-            this.previousValue = parseFloat(this.currentValue);
         }
 
         this.clearActiveOperator();
@@ -307,11 +301,15 @@ class Calculator {
             case '÷':
             case '/':
                 if (second === 0) return 'Error';
-                return first / second;
+                return (this.currentMode === 'programmer') ? Math.floor(first / second) : (first / second);
+            case 'AND': return (first & second) >>> 0;
+            case 'OR': return (first | second) >>> 0;
+            case 'XOR': return (first ^ second) >>> 0;
+            case 'NOR': return (~(first | second)) >>> 0;
+            case 'xshl': return (first << second) >>> 0;
+            case 'xshr': return (first >> second) >>> 0;
+            case 'mod': return first % second;
             case '^': return Math.pow(first, second);
-            case 'yroot': return Math.pow(first, 1 / second);
-            case 'logy': return Math.log(first) / Math.log(second);
-            case 'EE': return first * Math.pow(10, second);
             default: return second;
         }
     }
@@ -335,6 +333,8 @@ class Calculator {
 
     formatNumber(val) {
         if (val === null || val === undefined) return '';
+        if (this.currentMode === 'programmer') return val.toString(this.currentBase).toUpperCase();
+
         const strVal = val.toString();
         if (strVal === 'Error' || strVal.includes('e')) return strVal;
         const parts = strVal.split('.');
@@ -354,7 +354,7 @@ class Calculator {
     }
 
     updateDisplay() {
-        let displayStr = this.formatNumber(this.currentValue);
+        let displayStr = (this.currentMode === 'programmer') ? this.currentValue.toUpperCase() : this.formatNumber(this.currentValue);
         this.displayElement.textContent = displayStr;
 
         if (this.expressionElement) {
@@ -363,6 +363,11 @@ class Calculator {
             } else {
                 this.expressionElement.textContent = this.expressionStr;
             }
+        }
+
+        // Update 64-bit binary grid if in Programmer mode
+        if (this.currentMode === 'programmer') {
+            this.updateBinaryGrid();
         }
 
         const length = displayStr.length;
@@ -375,6 +380,54 @@ class Calculator {
         } else {
             this.displayElement.style.fontSize = '64px';
         }
+    }
+
+    updateBinaryGrid() {
+        const grid = document.getElementById('binary-grid');
+        if (!grid) return;
+
+        let num = parseInt(this.currentValue, this.currentBase) || 0;
+        let binStr = (BigInt(num) & 0xFFFFFFFFFFFFFFFFn).toString(2).padStart(64, '0');
+
+        const rows = grid.querySelectorAll('.bit-row');
+        if (rows.length >= 2) {
+            // Top row: bits 63..32
+            const topSpans = rows[0].querySelectorAll('span');
+            for (let i = 0; i < 8; i++) {
+                const nibble = binStr.slice(i * 4, (i + 1) * 4);
+                if (i === 4) topSpans[i].innerHTML = `${nibble}<sub class="bit-idx">47</sub>`;
+                else if (i === 7) topSpans[i].innerHTML = `${nibble}<sub class="bit-idx">32</sub>`;
+                else topSpans[i].textContent = nibble;
+            }
+
+            // Bottom row: bits 31..0
+            const botSpans = rows[1].querySelectorAll('span');
+            for (let i = 0; i < 8; i++) {
+                const nibble = binStr.slice((i + 8) * 4, (i + 9) * 4);
+                if (i === 4) botSpans[i].innerHTML = `${nibble}<sub class="bit-idx">15</sub>`;
+                else if (i === 7) botSpans[i].innerHTML = `${nibble}<sub class="bit-idx">0</sub>`;
+                else botSpans[i].textContent = nibble;
+            }
+        }
+    }
+
+    setBase(base) {
+        let val = parseInt(this.currentValue, this.currentBase) || 0;
+        this.currentBase = base;
+        this.currentValue = val.toString(base).toUpperCase();
+        this.updateDisplay();
+
+        // Enable / disable Hex & Number buttons according to base
+        document.querySelectorAll('.key.hex-btn').forEach(btn => {
+            btn.disabled = (base !== 16);
+        });
+
+        document.querySelectorAll('.key.number').forEach(btn => {
+            const num = btn.dataset.number;
+            if (num === '8' || num === '9') {
+                btn.disabled = (base === 8);
+            }
+        });
     }
 
     setActiveOperator(button) {
@@ -399,8 +452,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const modeBtn = document.getElementById('mode-btn');
     const modeDropdown = document.getElementById('mode-dropdown');
     const calculatorContainer = document.getElementById('calculator-container');
-    const btn2nd = document.getElementById('btn-2nd');
-    const btnRad = document.getElementById('btn-rad');
+    const progControls = document.getElementById('prog-controls');
+    const binaryGrid = document.getElementById('binary-grid');
+    const btnToggleBinary = document.getElementById('btn-toggle-binary');
 
     if (modeBtn && modeDropdown) {
         modeBtn.addEventListener('click', (e) => {
@@ -429,10 +483,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.classList.add('active');
                 calculator.currentMode = selectedMode;
 
+                calculatorContainer.classList.remove('scientific-mode', 'programmer-mode');
+                progControls.classList.add('hidden');
+                binaryGrid.classList.add('hidden');
+
                 if (selectedMode === 'scientific') {
                     calculatorContainer.classList.add('scientific-mode');
-                } else {
-                    calculatorContainer.classList.remove('scientific-mode');
+                } else if (selectedMode === 'programmer') {
+                    calculatorContainer.classList.add('programmer-mode');
+                    progControls.classList.remove('hidden');
+                    if (calculator.showBinary) binaryGrid.classList.remove('hidden');
+                    calculator.setBase(calculator.currentBase);
                 }
 
                 modeDropdown.classList.remove('show');
@@ -440,30 +501,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2nd button toggle listener
-    if (btn2nd) {
-        btn2nd.addEventListener('click', () => {
-            calculator.is2nd = !calculator.is2nd;
-            btn2nd.classList.toggle('active-2nd');
-            
-            document.querySelectorAll('.trig-btn').forEach(btn => {
-                const sci = btn.dataset.sci;
-                if (calculator.is2nd) {
-                    btn.innerHTML = sci.endsWith('h') ? `${sci}<sup>-1</sup>` : `${sci}<sup>-1</sup>`;
-                } else {
-                    btn.textContent = sci;
-                }
-            });
+    // Programmer radix base selector (8, 10, 16)
+    document.querySelectorAll('.seg-btn[data-base]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.seg-btn[data-base]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const base = parseInt(btn.dataset.base, 10);
+            calculator.setBase(base);
+        });
+    });
+
+    // Hide/Show Binary button toggle
+    if (btnToggleBinary) {
+        btnToggleBinary.addEventListener('click', () => {
+            calculator.showBinary = !calculator.showBinary;
+            btnToggleBinary.textContent = calculator.showBinary ? 'Hide Binary' : 'Show Binary';
+            if (calculator.showBinary) binaryGrid.classList.remove('hidden');
+            else binaryGrid.classList.add('hidden');
         });
     }
 
-    // Rad / Deg button toggle listener
-    if (btnRad) {
-        btnRad.addEventListener('click', () => {
-            calculator.isRad = !calculator.isRad;
-            btnRad.textContent = calculator.isRad ? 'Rad' : 'Deg';
+    // Hex & Programmer button listeners
+    document.querySelectorAll('.key[data-hex]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!btn.disabled) calculator.inputDigit(btn.dataset.hex);
         });
-    }
+    });
+
+    document.querySelectorAll('.key[data-prog]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            calculator.handleProgrammer(btn.dataset.prog);
+        });
+    });
 
     // Scientific keypad buttons
     document.querySelectorAll('.key.scientific').forEach(btn => {
@@ -479,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Basic Keypad button listeners
-    document.querySelectorAll('.key:not(.scientific)').forEach(button => {
+    document.querySelectorAll('.key:not(.scientific):not(.prog-col)').forEach(button => {
         button.addEventListener('click', (e) => {
             const target = e.currentTarget;
             const number = target.dataset.number;
@@ -510,8 +579,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => {
         const key = e.key;
 
-        if (key >= '0' && key <= '9') {
-            calculator.inputDigit(key);
+        if ((key >= '0' && key <= '9') || (calculator.currentMode === 'programmer' && calculator.currentBase === 16 && key.toUpperCase() >= 'A' && key.toUpperCase() <= 'F')) {
+            calculator.inputDigit(key.toUpperCase());
         } else if (key === '.') {
             calculator.inputDecimal();
         } else if (key === '+' || key === '-') {

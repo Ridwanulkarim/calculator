@@ -33,6 +33,10 @@ body {
     width: 780px;
 }
 
+.calculator-container.programmer-mode {
+    width: 580px;
+}
+
 /* Top Control Bar */
 .top-bar {
     display: flex;
@@ -156,6 +160,102 @@ body {
     margin: 4px 6px;
 }
 
+/* Programmer Controls (ASCII|Unicode, Hide Binary, Base 8|10|16) */
+.programmer-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.programmer-controls.hidden {
+    display: none;
+}
+
+.seg-control {
+    display: flex;
+    background-color: #1c1c1e;
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.seg-btn {
+    background: transparent;
+    border: none;
+    color: #8e8e93;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.seg-btn.active {
+    background-color: #3a3a3c;
+    color: #ffffff;
+}
+
+.seg-btn[data-base="16"].active {
+    background-color: #ff9f0a;
+    color: #ffffff;
+}
+
+.toggle-btn {
+    background-color: #1c1c1e;
+    border: none;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.toggle-btn:active {
+    background-color: #2c2c2e;
+}
+
+/* 64-Bit Binary Grid Display */
+.binary-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background-color: #1c1c1e;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.binary-grid.hidden {
+    display: none;
+}
+
+.bit-row {
+    display: flex;
+    justify-content: space-between;
+    color: #e5e5ea;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.bit-row span {
+    position: relative;
+}
+
+.bit-idx {
+    position: absolute;
+    bottom: -10px;
+    right: 0;
+    font-size: 9px;
+    color: #8e8e93;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 /* Display Area */
 .display-area {
     display: flex;
@@ -189,7 +289,7 @@ body {
     transition: font-size 0.15s ease;
 }
 
-/* Keypad Grid (4-column basic default, 10-column scientific) */
+/* Keypad Grid (4-col basic default, 10-col scientific, 7-col programmer) */
 .keypad {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -201,12 +301,25 @@ body {
     gap: 10px;
 }
 
-.sci-col {
+.programmer-mode .keypad {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+}
+
+.sci-col, .prog-col {
     display: none;
 }
 
 .scientific-mode .sci-col {
     display: flex;
+}
+
+.programmer-mode .prog-col {
+    display: flex;
+}
+
+.programmer-mode .basic-sci-col {
+    display: none;
 }
 
 .key {
@@ -227,32 +340,11 @@ body {
     transform: scale(0.94);
 }
 
-.scientific-mode .key {
+.scientific-mode .key, .programmer-mode .key {
     font-size: 18px;
 }
 
-/* Scientific buttons matching screenshot */
-.key.scientific {
-    background-color: #3a3a3c;
-    color: #ffffff;
-    font-size: 16px;
-    font-weight: 400;
-}
-
-.key.scientific:active {
-    background-color: #5b5b5e;
-}
-
-.key.scientific.active-2nd {
-    background-color: #707074;
-}
-
-.key.scientific sub, .key.scientific sup {
-    font-size: 11px;
-    line-height: 0;
-}
-
-/* Top / Function Buttons (Backspace, AC, %, +/-) */
+/* Key styles matching Programmer mode screenshot */
 .key.function {
     background-color: #505054;
     color: #ffffff;
@@ -261,6 +353,18 @@ body {
 
 .key.function:active {
     background-color: #7c7c80;
+}
+
+.key.hex-btn {
+    background-color: #505054;
+    color: #ffffff;
+    font-size: 20px;
+}
+
+.key.hex-btn:disabled {
+    background-color: #2c2c2e;
+    color: #505054;
+    cursor: not-allowed;
 }
 
 .backspace-icon, .toggle-sign-icon {
@@ -276,6 +380,11 @@ body {
 
 .key.number:active {
     background-color: #48484a;
+}
+
+.key.number:disabled {
+    color: #505054;
+    cursor: not-allowed;
 }
 
 /* Operator Buttons (+, -, ×, ÷, =) */
