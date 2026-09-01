@@ -3,6 +3,8 @@ class Calculator {
         this.displayElement = displayElement;
         this.expressionElement = expressionElement;
         this.clearBtnElement = clearBtnElement;
+        this.currentMode = 'basic';
+        this.rpnMode = false;
         this.reset();
     }
 
@@ -100,6 +102,75 @@ class Calculator {
         this.updateDisplay();
     }
 
+    handleScientific(type) {
+        let val = parseFloat(this.currentValue);
+        if (isNaN(val) && type !== 'pi' && type !== 'e') return;
+
+        let res = 0;
+        switch (type) {
+            case 'pi':
+                res = Math.PI;
+                this.expressionStr = 'π';
+                break;
+            case 'e':
+                res = Math.E;
+                this.expressionStr = 'e';
+                break;
+            case 'sin':
+                res = Math.sin(val);
+                this.expressionStr = `sin(${this.formatNumber(val)})`;
+                break;
+            case 'cos':
+                res = Math.cos(val);
+                this.expressionStr = `cos(${this.formatNumber(val)})`;
+                break;
+            case 'tan':
+                res = Math.tan(val);
+                this.expressionStr = `tan(${this.formatNumber(val)})`;
+                break;
+            case 'ln':
+                if (val <= 0) return this.displayError();
+                res = Math.log(val);
+                this.expressionStr = `ln(${this.formatNumber(val)})`;
+                break;
+            case 'log':
+                if (val <= 0) return this.displayError();
+                res = Math.log10(val);
+                this.expressionStr = `log(${this.formatNumber(val)})`;
+                break;
+            case 'square':
+                res = Math.pow(val, 2);
+                this.expressionStr = `${this.formatNumber(val)}²`;
+                break;
+            case 'sqrt':
+                if (val < 0) return this.displayError();
+                res = Math.sqrt(val);
+                this.expressionStr = `√(${this.formatNumber(val)})`;
+                break;
+            case 'factorial':
+                if (val < 0 || !Number.isInteger(val)) return this.displayError();
+                res = this.fact(val);
+                this.expressionStr = `${this.formatNumber(val)}!`;
+                break;
+            case 'power':
+                this.handleOperator('^', null);
+                return;
+            default:
+                return;
+        }
+
+        this.currentValue = this.formatResult(res);
+        this.awaitingNextOperand = true;
+        this.updateDisplay();
+    }
+
+    fact(n) {
+        if (n === 0 || n === 1) return 1;
+        let result = 1;
+        for (let i = 2; i <= n; i++) result *= i;
+        return result;
+    }
+
     handleOperator(nextOperator, operatorButton) {
         const inputValue = parseFloat(this.currentValue);
 
@@ -180,6 +251,7 @@ class Calculator {
             case '/':
                 if (second === 0) return 'Error';
                 return first / second;
+            case '^': return Math.pow(first, second);
             default: return second;
         }
     }
@@ -233,7 +305,6 @@ class Calculator {
             }
         }
 
-        // Dynamic font size adjustment based on text length
         const length = displayStr.length;
         if (length > 9) {
             this.displayElement.style.fontSize = '38px';
@@ -264,11 +335,73 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtnElement = document.getElementById('clear-btn');
     const calculator = new Calculator(displayElement, expressionElement, clearBtnElement);
 
-    // Initial state clean: main display shows 0, expression line is empty/null
-    calculator.reset();
+    // Mode dropdown popover control
+    const modeBtn = document.getElementById('mode-btn');
+    const modeDropdown = document.getElementById('mode-dropdown');
+    const calculatorContainer = document.getElementById('calculator-container');
+    const scientificKeypad = document.getElementById('scientific-keypad');
 
-    // Event listener for button clicks
-    document.querySelectorAll('.key').forEach(button => {
+    if (modeBtn && modeDropdown) {
+        modeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            modeDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!modeDropdown.contains(e.target) && e.target !== modeBtn) {
+                modeDropdown.classList.remove('show');
+            }
+        });
+
+        // Mode menu selection
+        document.querySelectorAll('.menu-item[data-mode]').forEach(item => {
+            item.addEventListener('click', () => {
+                const selectedMode = item.dataset.mode;
+                
+                document.querySelectorAll('.menu-item[data-mode]').forEach(el => {
+                    const checkSpan = el.querySelector('.check-icon');
+                    if (checkSpan) checkSpan.textContent = '';
+                    el.classList.remove('active');
+                });
+
+                item.querySelector('.check-icon').textContent = '✓';
+                item.classList.add('active');
+                calculator.currentMode = selectedMode;
+
+                if (selectedMode === 'scientific') {
+                    scientificKeypad.classList.remove('hidden');
+                    calculatorContainer.classList.add('scientific-mode');
+                } else {
+                    scientificKeypad.classList.add('hidden');
+                    calculatorContainer.classList.remove('scientific-mode');
+                }
+
+                modeDropdown.classList.remove('show');
+            });
+        });
+
+        // RPN Mode toggle
+        const rpnItem = document.getElementById('rpn-item');
+        const rpnCheck = document.getElementById('rpn-check');
+        if (rpnItem && rpnCheck) {
+            rpnItem.addEventListener('click', () => {
+                calculator.rpnMode = !calculator.rpnMode;
+                rpnCheck.textContent = calculator.rpnMode ? '✓' : '';
+                modeDropdown.classList.remove('show');
+            });
+        }
+    }
+
+    // Scientific keypad buttons
+    document.querySelectorAll('.key.scientific').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const sciType = btn.dataset.sci;
+            calculator.handleScientific(sciType);
+        });
+    });
+
+    // Basic Keypad button listeners
+    document.querySelectorAll('.key:not(.scientific)').forEach(button => {
         button.addEventListener('click', (e) => {
             const target = e.currentTarget;
             const number = target.dataset.number;

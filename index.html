@@ -7,14 +7,112 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="calculator-container">
+    <div class="calculator-container" id="calculator-container">
+        <!-- Top Control Bar -->
+        <div class="top-bar">
+            <div class="mode-menu-wrapper">
+                <button class="mode-btn" id="mode-btn" aria-label="Calculator Mode">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <rect x="5" y="3" width="14" height="18" rx="3"/>
+                        <rect x="8" y="6" width="8" height="3" rx="1" fill="currentColor"/>
+                        <circle cx="8.5" cy="12.5" r="1" fill="currentColor"/>
+                        <circle cx="12" cy="12.5" r="1" fill="currentColor"/>
+                        <circle cx="15.5" cy="12.5" r="1" fill="currentColor"/>
+                        <circle cx="8.5" cy="15.5" r="1" fill="currentColor"/>
+                        <circle cx="12" cy="15.5" r="1" fill="currentColor"/>
+                        <circle cx="15.5" cy="15.5" r="1" fill="currentColor"/>
+                        <circle cx="8.5" cy="18.5" r="1" fill="currentColor"/>
+                        <circle cx="12" cy="18.5" r="1" fill="currentColor"/>
+                        <circle cx="15.5" cy="18.5" r="1" fill="currentColor"/>
+                    </svg>
+                </button>
+
+                <!-- Popover Dropdown Menu matching macOS/iOS 18 -->
+                <div class="mode-dropdown" id="mode-dropdown">
+                    <div class="menu-item active" data-mode="basic">
+                        <span class="check-icon">✓</span>
+                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M5 8h4M7 6v4M15 8h4M15 16h4M15 18h4M5 16l4 4M9 16l-4 4"/>
+                        </svg>
+                        <span class="item-text">Basic</span>
+                    </div>
+                    <div class="menu-item" data-mode="scientific">
+                        <span class="check-icon"></span>
+                        <span class="item-icon font-fx">f(x)</span>
+                        <span class="item-text">Scientific</span>
+                    </div>
+                    <div class="menu-item" data-mode="programmer">
+                        <span class="check-icon"></span>
+                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="4" y="4" width="16" height="16" rx="2"/>
+                            <rect x="8" y="8" width="8" height="8" rx="1"/>
+                            <line x1="9" y1="1" x2="9" y2="4"/>
+                            <line x1="15" y1="1" x2="15" y2="4"/>
+                            <line x1="9" y1="20" x2="9" y2="23"/>
+                            <line x1="15" y1="20" x2="15" y2="23"/>
+                            <line x1="1" y1="9" x2="4" y2="9"/>
+                            <line x1="1" y1="15" x2="4" y2="15"/>
+                            <line x1="20" y1="9" x2="23" y2="9"/>
+                            <line x1="20" y1="15" x2="23" y2="15"/>
+                        </svg>
+                        <span class="item-text">Programmer</span>
+                    </div>
+
+                    <div class="menu-divider"></div>
+
+                    <div class="menu-item" id="convert-item">
+                        <span class="check-icon"></span>
+                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M4 17h16M16 13l4 4-4 4M20 7H4M8 11L4 7l4-4"/>
+                        </svg>
+                        <span class="item-text">Convert</span>
+                    </div>
+                    <div class="menu-item" id="rpn-item">
+                        <span class="check-icon" id="rpn-check"></span>
+                        <svg class="item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <line x1="4" y1="6" x2="20" y2="6"/>
+                            <line x1="4" y1="12" x2="20" y2="12"/>
+                            <line x1="4" y1="18" x2="20" y2="18"/>
+                        </svg>
+                        <span class="item-text">RPN Mode</span>
+                    </div>
+
+                    <div class="menu-divider"></div>
+
+                    <div class="menu-item" id="notes-item">
+                        <span class="check-icon"></span>
+                        <span class="item-icon font-math">𝒴𝓍</span>
+                        <span class="item-text">Maths Notes...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Display Area -->
         <div class="display-area">
             <div class="expression-display" id="expression"></div>
             <div class="main-display" id="display">0</div>
         </div>
 
-        <!-- Keypad Grid -->
+        <!-- Scientific Grid (Shown when Scientific mode selected) -->
+        <div class="keypad scientific-grid hidden" id="scientific-keypad">
+            <button class="key scientific" data-sci="rad">Rad</button>
+            <button class="key scientific" data-sci="sin">sin</button>
+            <button class="key scientific" data-sci="cos">cos</button>
+            <button class="key scientific" data-sci="tan">tan</button>
+            
+            <button class="key scientific" data-sci="ln">ln</button>
+            <button class="key scientific" data-sci="log">log</button>
+            <button class="key scientific" data-sci="pi">π</button>
+            <button class="key scientific" data-sci="e">e</button>
+
+            <button class="key scientific" data-sci="square">x²</button>
+            <button class="key scientific" data-sci="power">xʸ</button>
+            <button class="key scientific" data-sci="sqrt">√x</button>
+            <button class="key scientific" data-sci="factorial">x!</button>
+        </div>
+
+        <!-- Keypad Grid (Basic) -->
         <div class="keypad">
             <!-- Row 1 -->
             <button class="key function" id="backspace-btn" data-action="backspace" aria-label="Backspace">
