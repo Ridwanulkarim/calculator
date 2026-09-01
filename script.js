@@ -4,8 +4,10 @@ class Calculator {
         this.expressionElement = expressionElement;
         this.clearBtnElement = clearBtnElement;
         this.currentMode = 'basic';
-        this.currentBase = 16; // 8, 10, or 16 for Programmer mode
+        this.currentBase = 16;
         this.showBinary = true;
+        this.rpnMode = false;
+        this.rpnStack = [];
         this.is2nd = false;
         this.isRad = true;
         this.memory = 0;
@@ -20,6 +22,7 @@ class Calculator {
         this.awaitingNextOperand = false;
         this.lastOperator = null;
         this.lastOperand = null;
+        this.rpnStack = [];
         this.updateDisplay();
         this.updateClearBtnText();
         this.clearActiveOperator();
@@ -76,7 +79,7 @@ class Calculator {
     }
 
     inputDecimal() {
-        if (this.currentMode === 'programmer') return; // Decimal point disabled in integer Programmer mode
+        if (this.currentMode === 'programmer') return;
         this.clearActiveOperator();
 
         if (this.awaitingNextOperand) {
@@ -107,56 +110,75 @@ class Calculator {
         this.updateDisplay();
     }
 
-    // Handle Programmer Mode Bitwise Operations matching screenshot
+    // RPN Mode Stack Operations (x↔y, R↓, R↑, drop) matching screenshot
+    handleRPN(action) {
+        if (!this.rpnMode) return;
+
+        let val = parseFloat(this.currentValue);
+
+        switch (action) {
+            case 'swap':
+                if (this.rpnStack.length >= 2) {
+                    let y = this.rpnStack.pop();
+                    let x = this.rpnStack.pop();
+                    this.rpnStack.push(y);
+                    this.rpnStack.push(x);
+                    this.currentValue = this.formatResult(x);
+                } else if (this.rpnStack.length === 1 && !isNaN(val)) {
+                    let y = val;
+                    let x = this.rpnStack.pop();
+                    this.rpnStack.push(y);
+                    this.currentValue = this.formatResult(x);
+                }
+                break;
+            case 'rolldown':
+                if (this.rpnStack.length > 1) {
+                    let top = this.rpnStack.pop();
+                    this.rpnStack.unshift(top);
+                    this.currentValue = this.formatResult(this.rpnStack[this.rpnStack.length - 1]);
+                }
+                break;
+            case 'rollup':
+                if (this.rpnStack.length > 1) {
+                    let bot = this.rpnStack.shift();
+                    this.rpnStack.push(bot);
+                    this.currentValue = this.formatResult(this.rpnStack[this.rpnStack.length - 1]);
+                }
+                break;
+            case 'drop':
+                if (this.rpnStack.length > 0) {
+                    this.rpnStack.pop();
+                    this.currentValue = this.rpnStack.length > 0 
+                        ? this.formatResult(this.rpnStack[this.rpnStack.length - 1]) 
+                        : '0';
+                } else {
+                    this.currentValue = '0';
+                }
+                break;
+        }
+
+        this.awaitingNextOperand = true;
+        this.updateDisplay();
+    }
+
     handleProgrammer(op) {
         let val = parseInt(this.currentValue, this.currentBase);
         if (isNaN(val)) return;
 
         let res = 0;
         switch (op) {
-            case 'NOT':
-                res = ~val;
-                this.expressionStr = `NOT(${this.currentValue})`;
-                break;
-            case 'NEG':
-                res = -val;
-                this.expressionStr = `NEG(${this.currentValue})`;
-                break;
-            case 'shl':
-                res = val << 1;
-                this.expressionStr = `${this.currentValue} << 1`;
-                break;
-            case 'shr':
-                res = val >> 1;
-                this.expressionStr = `${this.currentValue} >> 1`;
-                break;
-            case 'RoL':
-                res = (val << 1) | (val >>> 31);
-                this.expressionStr = `RoL(${this.currentValue})`;
-                break;
-            case 'RoR':
-                res = (val >>> 1) | (val << 31);
-                this.expressionStr = `RoR(${this.currentValue})`;
-                break;
-            case 'flip8':
-                res = ((val & 0xFF) << 8) | ((val >> 8) & 0xFF);
-                this.expressionStr = `flip8(${this.currentValue})`;
-                break;
-            case 'flip16':
-                res = ((val & 0xFFFF) << 16) | ((val >> 16) & 0xFFFF);
-                this.expressionStr = `flip16(${this.currentValue})`;
-                break;
-            case 'AND':
-            case 'OR':
-            case 'XOR':
-            case 'NOR':
-            case 'xshl':
-            case 'xshr':
-            case 'mod':
+            case 'NOT': res = ~val; this.expressionStr = `NOT(${this.currentValue})`; break;
+            case 'NEG': res = -val; this.expressionStr = `NEG(${this.currentValue})`; break;
+            case 'shl': res = val << 1; this.expressionStr = `${this.currentValue} << 1`; break;
+            case 'shr': res = val >> 1; this.expressionStr = `${this.currentValue} >> 1`; break;
+            case 'RoL': res = (val << 1) | (val >>> 31); this.expressionStr = `RoL(${this.currentValue})`; break;
+            case 'RoR': res = (val >>> 1) | (val << 31); this.expressionStr = `RoR(${this.currentValue})`; break;
+            case 'flip8': res = ((val & 0xFF) << 8) | ((val >> 8) & 0xFF); this.expressionStr = `flip8(${this.currentValue})`; break;
+            case 'flip16': res = ((val & 0xFFFF) << 16) | ((val >> 16) & 0xFFFF); this.expressionStr = `flip16(${this.currentValue})`; break;
+            case 'AND': case 'OR': case 'XOR': case 'NOR': case 'xshl': case 'xshr': case 'mod':
                 this.handleOperator(op, null);
                 return;
-            default:
-                return;
+            default: return;
         }
 
         this.currentValue = res.toString(this.currentBase).toUpperCase();
@@ -164,7 +186,6 @@ class Calculator {
         this.updateDisplay();
     }
 
-    // Handle Scientific calculations
     handleScientific(type) {
         let val = parseFloat(this.currentValue);
         if (isNaN(val) && type !== 'pi' && type !== 'e' && type !== 'rand') return;
@@ -224,6 +245,21 @@ class Calculator {
     }
 
     handleOperator(nextOperator, operatorButton) {
+        if (this.rpnMode) {
+            // RPN Mode binary operator execution on stack top 2 elements
+            let y = parseFloat(this.currentValue);
+            let x = this.rpnStack.length > 0 ? this.rpnStack.pop() : y;
+
+            const result = this.calculate(x, y, nextOperator);
+            if (result === 'Error') return this.displayError();
+
+            this.currentValue = this.formatResult(result);
+            this.rpnStack.push(result);
+            this.awaitingNextOperand = true;
+            this.updateDisplay();
+            return;
+        }
+
         let inputValue = (this.currentMode === 'programmer') 
             ? parseInt(this.currentValue, this.currentBase) 
             : parseFloat(this.currentValue);
@@ -260,6 +296,17 @@ class Calculator {
     }
 
     compute() {
+        if (this.rpnMode) {
+            // RPN Enter key: pushes current value to stack
+            let val = parseFloat(this.currentValue);
+            if (!isNaN(val)) {
+                this.rpnStack.push(val);
+                this.awaitingNextOperand = true;
+                this.updateDisplay();
+            }
+            return;
+        }
+
         let inputValue = (this.currentMode === 'programmer') 
             ? parseInt(this.currentValue, this.currentBase) 
             : parseFloat(this.currentValue);
@@ -358,14 +405,17 @@ class Calculator {
         this.displayElement.textContent = displayStr;
 
         if (this.expressionElement) {
-            if (this.operator && !this.awaitingNextOperand) {
+            if (this.rpnMode) {
+                this.expressionElement.textContent = this.rpnStack.length > 0 
+                    ? `Stack: [ ${this.rpnStack.map(n => this.formatNumber(n)).join(', ')} ]` 
+                    : '';
+            } else if (this.operator && !this.awaitingNextOperand) {
                 this.expressionElement.textContent = `${this.formatNumber(this.previousValue)}${this.operator}${this.formatNumber(this.currentValue)}`;
             } else {
                 this.expressionElement.textContent = this.expressionStr;
             }
         }
 
-        // Update 64-bit binary grid if in Programmer mode
         if (this.currentMode === 'programmer') {
             this.updateBinaryGrid();
         }
@@ -391,7 +441,6 @@ class Calculator {
 
         const rows = grid.querySelectorAll('.bit-row');
         if (rows.length >= 2) {
-            // Top row: bits 63..32
             const topSpans = rows[0].querySelectorAll('span');
             for (let i = 0; i < 8; i++) {
                 const nibble = binStr.slice(i * 4, (i + 1) * 4);
@@ -400,7 +449,6 @@ class Calculator {
                 else topSpans[i].textContent = nibble;
             }
 
-            // Bottom row: bits 31..0
             const botSpans = rows[1].querySelectorAll('span');
             for (let i = 0; i < 8; i++) {
                 const nibble = binStr.slice((i + 8) * 4, (i + 9) * 4);
@@ -417,7 +465,6 @@ class Calculator {
         this.currentValue = val.toString(base).toUpperCase();
         this.updateDisplay();
 
-        // Enable / disable Hex & Number buttons according to base
         document.querySelectorAll('.key.hex-btn').forEach(btn => {
             btn.disabled = (base !== 16);
         });
@@ -454,7 +501,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const calculatorContainer = document.getElementById('calculator-container');
     const progControls = document.getElementById('prog-controls');
     const binaryGrid = document.getElementById('binary-grid');
-    const btnToggleBinary = document.getElementById('btn-toggle-binary');
+    const rpnControls = document.getElementById('rpn-controls');
+    const equalsBtn = document.getElementById('equals-btn');
+    const rpnCheck = document.getElementById('rpn-check');
 
     if (modeBtn && modeDropdown) {
         modeBtn.addEventListener('click', (e) => {
@@ -499,7 +548,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 modeDropdown.classList.remove('show');
             });
         });
+
+        // RPN Mode toggle
+        const rpnItem = document.getElementById('rpn-item');
+        if (rpnItem && rpnCheck && rpnControls && equalsBtn) {
+            rpnItem.addEventListener('click', () => {
+                calculator.rpnMode = !calculator.rpnMode;
+                rpnCheck.textContent = calculator.rpnMode ? '✓' : '';
+                
+                if (calculator.rpnMode) {
+                    rpnControls.classList.remove('hidden');
+                    equalsBtn.textContent = 'enter';
+                } else {
+                    rpnControls.classList.add('hidden');
+                    equalsBtn.textContent = '=';
+                }
+
+                calculator.updateDisplay();
+                modeDropdown.classList.remove('show');
+            });
+        }
     }
+
+    // RPN stack button listeners
+    document.querySelectorAll('.key[data-rpn]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            calculator.handleRPN(btn.dataset.rpn);
+        });
+    });
 
     // Programmer radix base selector (8, 10, 16)
     document.querySelectorAll('.seg-btn[data-base]').forEach(btn => {
@@ -510,16 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
             calculator.setBase(base);
         });
     });
-
-    // Hide/Show Binary button toggle
-    if (btnToggleBinary) {
-        btnToggleBinary.addEventListener('click', () => {
-            calculator.showBinary = !calculator.showBinary;
-            btnToggleBinary.textContent = calculator.showBinary ? 'Hide Binary' : 'Show Binary';
-            if (calculator.showBinary) binaryGrid.classList.remove('hidden');
-            else binaryGrid.classList.add('hidden');
-        });
-    }
 
     // Hex & Programmer button listeners
     document.querySelectorAll('.key[data-hex]').forEach(btn => {
@@ -548,7 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Basic Keypad button listeners
-    document.querySelectorAll('.key:not(.scientific):not(.prog-col)').forEach(button => {
+    document.querySelectorAll('.key:not(.scientific):not(.prog-col):not(.rpn-btn)').forEach(button => {
         button.addEventListener('click', (e) => {
             const target = e.currentTarget;
             const number = target.dataset.number;

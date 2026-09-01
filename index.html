@@ -88,15 +88,13 @@
             </div>
         </div>
 
-        <!-- Programmer Top Bar Controls (ASCII|Unicode, Hide Binary, Base 8|10|16) -->
+        <!-- Programmer Top Bar Controls -->
         <div class="programmer-controls hidden" id="prog-controls">
             <div class="seg-control">
                 <button class="seg-btn active" data-encoding="ascii">ASCII</button>
                 <button class="seg-btn" data-encoding="unicode">Unicode</button>
             </div>
-
             <button class="toggle-btn" id="btn-toggle-binary">Hide Binary</button>
-
             <div class="seg-control">
                 <button class="seg-btn" data-base="8">8</button>
                 <button class="seg-btn" data-base="10">10</button>
@@ -120,6 +118,14 @@
         <div class="display-area">
             <div class="expression-display" id="expression"></div>
             <div class="main-display" id="display">0</div>
+        </div>
+
+        <!-- RPN Mode Top Stack Controls (x↔y, R↓, R↑, drop) matching screenshot -->
+        <div class="rpn-controls hidden" id="rpn-controls">
+            <button class="key rpn-btn" data-rpn="swap">x↔y</button>
+            <button class="key rpn-btn" data-rpn="rolldown">R↓</button>
+            <button class="key rpn-btn" data-rpn="rollup">R↑</button>
+            <button class="key rpn-btn" data-rpn="drop">drop</button>
         </div>
 
         <!-- Keypad Grid (Supports 4-col Basic, 10-col Scientific, and 7-col Programmer layouts) -->
@@ -230,7 +236,7 @@
             </button>
             <button class="key number" data-number="0">0</button>
             <button class="key number" data-action="decimal">.</button>
-            <button class="key operator enter-btn" data-action="calculate">enter</button>
+            <button class="key operator enter-btn" id="equals-btn" data-action="calculate">=</button>
 
             <!-- Programmer Row 6 extra keys -->
             <button class="key prog-col function" data-prog="mod">mod</button>
