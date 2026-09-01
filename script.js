@@ -1,6 +1,7 @@
 class Calculator {
-    constructor(displayElement, clearBtnElement) {
+    constructor(displayElement, expressionElement, clearBtnElement) {
         this.displayElement = displayElement;
+        this.expressionElement = expressionElement;
         this.clearBtnElement = clearBtnElement;
         this.reset();
     }
@@ -9,6 +10,7 @@ class Calculator {
         this.currentValue = '0';
         this.previousValue = null;
         this.operator = null;
+        this.expressionStr = '';
         this.awaitingNextOperand = false;
         this.lastOperator = null;
         this.lastOperand = null;
@@ -25,6 +27,21 @@ class Calculator {
         } else {
             this.reset();
         }
+    }
+
+    backspace() {
+        if (this.awaitingNextOperand) return;
+
+        if (this.currentValue.length > 1 && this.currentValue !== 'Error') {
+            this.currentValue = this.currentValue.slice(0, -1);
+            if (this.currentValue === '-' || this.currentValue === '') {
+                this.currentValue = '0';
+            }
+        } else {
+            this.currentValue = '0';
+        }
+        this.updateClearBtnText();
+        this.updateDisplay();
     }
 
     updateClearBtnText() {
@@ -78,8 +95,8 @@ class Calculator {
     percent() {
         let num = parseFloat(this.currentValue);
         if (isNaN(num)) return;
-        num = num / 100;
-        this.currentValue = this.formatResult(num);
+        this.expressionStr = `${this.formatNumber(this.currentValue)}%`;
+        this.currentValue = this.formatResult(num / 100);
         this.updateDisplay();
     }
 
@@ -88,7 +105,9 @@ class Calculator {
 
         if (this.operator && this.awaitingNextOperand) {
             this.operator = nextOperator;
+            this.expressionStr = `${this.formatNumber(this.previousValue)}${this.operator}`;
             this.setActiveOperator(operatorButton);
+            this.updateDisplay();
             return;
         }
 
@@ -102,14 +121,15 @@ class Calculator {
             }
             this.currentValue = this.formatResult(result);
             this.previousValue = parseFloat(this.currentValue);
-            this.updateDisplay();
         }
 
         this.awaitingNextOperand = true;
         this.operator = nextOperator;
         this.lastOperator = null;
         this.lastOperand = null;
+        this.expressionStr = `${this.formatNumber(this.previousValue)}${this.operator}`;
         this.setActiveOperator(operatorButton);
+        this.updateDisplay();
     }
 
     compute() {
@@ -123,6 +143,8 @@ class Calculator {
                 this.lastOperator = this.operator;
             }
 
+            this.expressionStr = `${this.formatNumber(this.previousValue)}${this.operator}${this.formatNumber(inputValue)}`;
+
             const result = this.calculate(this.previousValue, inputValue, this.operator);
             if (result === 'Error') {
                 this.displayError();
@@ -134,7 +156,7 @@ class Calculator {
             this.operator = null;
             this.awaitingNextOperand = true;
         } else if (this.lastOperator && this.lastOperand !== null) {
-            // Repeat last operation when pressing = again
+            this.expressionStr = `${this.formatNumber(inputValue)}${this.lastOperator}${this.formatNumber(this.lastOperand)}`;
             const result = this.calculate(inputValue, this.lastOperand, this.lastOperator);
             if (result === 'Error') {
                 this.displayError();
@@ -166,7 +188,6 @@ class Calculator {
         if (typeof number === 'string') return number;
         if (isNaN(number) || !isFinite(number)) return 'Error';
 
-        // Precision adjustment for floating point arithmetic
         const fixed = parseFloat(number.toFixed(10));
         let str = fixed.toString();
 
@@ -180,39 +201,48 @@ class Calculator {
         return str;
     }
 
+    formatNumber(val) {
+        if (val === null || val === undefined) return '';
+        const strVal = val.toString();
+        if (strVal === 'Error' || strVal.includes('e')) return strVal;
+        const parts = strVal.split('.');
+        parts[0] = parseInt(parts[0], 10).toLocaleString('en-US') || '0';
+        if (strVal.startsWith('-') && parts[0] === '0') parts[0] = '-0';
+        return parts.join('.');
+    }
+
     displayError() {
         this.currentValue = 'Error';
         this.previousValue = null;
         this.operator = null;
+        this.expressionStr = '';
         this.awaitingNextOperand = true;
         this.updateDisplay();
         this.clearActiveOperator();
     }
 
     updateDisplay() {
-        let displayStr = this.currentValue;
-
-        if (displayStr !== 'Error' && !displayStr.includes('e')) {
-            const parts = displayStr.split('.');
-            parts[0] = parseInt(parts[0], 10).toLocaleString('en-US') || '0';
-            if (displayStr.startsWith('-') && parts[0] === '0') {
-                parts[0] = '-0';
-            }
-            displayStr = parts.join('.');
-        }
-
+        let displayStr = this.formatNumber(this.currentValue);
         this.displayElement.textContent = displayStr;
+
+        if (this.expressionElement) {
+            if (this.operator && !this.awaitingNextOperand) {
+                this.expressionElement.textContent = `${this.formatNumber(this.previousValue)}${this.operator}${this.formatNumber(this.currentValue)}`;
+            } else {
+                this.expressionElement.textContent = this.expressionStr;
+            }
+        }
 
         // Dynamic font size adjustment based on text length
         const length = displayStr.length;
         if (length > 9) {
-            this.displayElement.style.fontSize = '32px';
+            this.displayElement.style.fontSize = '38px';
         } else if (length > 7) {
-            this.displayElement.style.fontSize = '40px';
+            this.displayElement.style.fontSize = '46px';
         } else if (length > 5) {
-            this.displayElement.style.fontSize = '48px';
+            this.displayElement.style.fontSize = '54px';
         } else {
-            this.displayElement.style.fontSize = '56px';
+            this.displayElement.style.fontSize = '64px';
         }
     }
 
@@ -230,8 +260,17 @@ class Calculator {
 
 document.addEventListener('DOMContentLoaded', () => {
     const displayElement = document.getElementById('display');
+    const expressionElement = document.getElementById('expression');
     const clearBtnElement = document.getElementById('clear-btn');
-    const calculator = new Calculator(displayElement, clearBtnElement);
+    const calculator = new Calculator(displayElement, expressionElement, clearBtnElement);
+
+    // Initial state demo setup matching user screenshot: 38670 ÷ 50000 = 0.7734
+    calculator.previousValue = 38670;
+    calculator.operator = '÷';
+    calculator.expressionStr = '38,670÷50,000';
+    calculator.currentValue = '0.7734';
+    calculator.awaitingNextOperand = true;
+    calculator.updateDisplay();
 
     // Event listener for button clicks
     document.querySelectorAll('.key').forEach(button => {
@@ -251,6 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 calculator.percent();
             } else if (action === 'clear') {
                 calculator.clear();
+            } else if (action === 'backspace') {
+                calculator.backspace();
             } else if (action === 'operator') {
                 calculator.handleOperator(operator, target);
             } else if (action === 'calculate') {
@@ -285,16 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (key === '%') {
             calculator.percent();
         } else if (key === 'Backspace') {
-            if (calculator.currentValue.length > 1 && calculator.currentValue !== 'Error' && !calculator.awaitingNextOperand) {
-                calculator.currentValue = calculator.currentValue.slice(0, -1);
-                if (calculator.currentValue === '-' || calculator.currentValue === '') {
-                    calculator.currentValue = '0';
-                }
-                calculator.updateDisplay();
-            } else {
-                calculator.currentValue = '0';
-                calculator.updateDisplay();
-            }
+            calculator.backspace();
         }
     });
 });
