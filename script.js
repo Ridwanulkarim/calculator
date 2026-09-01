@@ -5,7 +5,7 @@ class Calculator {
         this.clearBtnElements = clearBtnElements;
         this.currentMode = 'basic';
         this.currentBase = 16;
-        this.encodingMode = 'ascii'; // 'ascii' or 'unicode'
+        this.encodingMode = 'ascii';
         this.showBinary = true;
         this.rpnMode = false;
         this.rpnStack = [];
@@ -400,7 +400,19 @@ class Calculator {
 
     updateDisplay() {
         let displayStr = (this.currentMode === 'programmer') ? this.currentValue.toUpperCase() : this.formatNumber(this.currentValue);
-        this.displayElement.textContent = displayStr;
+
+        // Format Programmer display with subscript radix base (16 -> 0₁₆, 8 -> 0₈, 10 -> 0)
+        if (this.currentMode === 'programmer') {
+            if (this.currentBase === 16) {
+                this.displayElement.innerHTML = `${displayStr}<sub style="font-size: 0.45em; margin-left: 2px; vertical-align: baseline;">16</sub>`;
+            } else if (this.currentBase === 8) {
+                this.displayElement.innerHTML = `${displayStr}<sub style="font-size: 0.45em; margin-left: 2px; vertical-align: baseline;">8</sub>`;
+            } else {
+                this.displayElement.textContent = displayStr;
+            }
+        } else {
+            this.displayElement.textContent = displayStr;
+        }
 
         if (this.expressionElement) {
             if (this.currentMode === 'programmer') {
@@ -418,7 +430,6 @@ class Calculator {
                     let hexStr = codePoint.toString(16).toUpperCase().padStart(4, '0');
                     this.expressionElement.textContent = `Unicode: U+${hexStr} ${charStr ? `('${charStr}')` : ''}`;
                 } else {
-                    // ASCII
                     if (codePoint >= 32 && codePoint <= 126) {
                         this.expressionElement.textContent = `ASCII: '${charStr}' (${codePoint})`;
                     } else {
