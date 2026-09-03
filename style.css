@@ -44,7 +44,7 @@ body {
 /* Top Control Bar */
 .top-bar {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
     height: 38px;
     position: relative;
@@ -79,7 +79,102 @@ body {
     height: 20px;
 }
 
-/* Popover Dropdown Menu (matching macOS/iOS 18 screenshot) */
+/* Keyboard Guide Button & Modal */
+.kbd-guide-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #1c1c1e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #8e8e93;
+    padding: 6px 12px;
+    border-radius: 18px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.kbd-guide-btn:hover {
+    background-color: #2c2c2e;
+    color: #ffffff;
+}
+
+.kbd-guide-btn:active {
+    transform: scale(0.95);
+}
+
+.kbd-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.kbd-modal {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    width: 300px;
+    background-color: rgba(45, 45, 48, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+    padding: 16px;
+    z-index: 300;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.kbd-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.kbd-close {
+    background: transparent;
+    border: none;
+    color: #8e8e93;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.kbd-close:hover {
+    color: #ffffff;
+}
+
+.kbd-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.kbd-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: #d1d1d6;
+}
+
+kbd {
+    background-color: #1c1c1e;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-family: SFMono-Regular, Consolas, monospace;
+    font-size: 11px;
+    color: #ff9f0a;
+}
+
+/* Popover Dropdown Menu */
 .mode-dropdown {
     position: absolute;
     top: 44px;
@@ -252,7 +347,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* RPN Mode Controls (x↔y, R↓, R↑, drop) */
+/* RPN Mode Controls */
 .rpn-controls {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -335,11 +430,12 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: filter 0.15s ease, background-color 0.2s ease, color 0.2s ease, transform 0.05s ease;
+    transition: filter 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
 }
 
-.key:active {
-    transform: scale(0.94);
+.key:active, .key.key-pressed {
+    transform: scale(0.92);
+    filter: brightness(1.4);
 }
 
 .scientific-keypad .key, .programmer-keypad .key {
@@ -354,7 +450,7 @@ body {
     font-weight: 400;
 }
 
-.key.scientific:active {
+.key.scientific:active, .key.scientific.key-pressed {
     background-color: #5b5b5e;
 }
 
@@ -373,7 +469,7 @@ body {
     font-size: 20px;
 }
 
-.key.function:active {
+.key.function:active, .key.function.key-pressed {
     background-color: #7c7c80;
 }
 
@@ -400,7 +496,7 @@ body {
     color: #ffffff;
 }
 
-.key.number:active {
+.key.number:active, .key.number.key-pressed {
     background-color: #48484a;
 }
 
@@ -416,7 +512,7 @@ body {
     font-size: 28px;
 }
 
-.key.operator:active {
+.key.operator:active, .key.operator.key-pressed {
     background-color: #fcae3b;
 }
 

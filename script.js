@@ -617,6 +617,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Keyboard Shortcuts Guide Modal Listener
+    const kbdGuideBtn = document.getElementById('kbd-guide-btn');
+    const kbdModal = document.getElementById('kbd-modal');
+    const kbdClose = document.getElementById('kbd-close');
+
+    if (kbdGuideBtn && kbdModal && kbdClose) {
+        kbdGuideBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            kbdModal.classList.toggle('hidden');
+        });
+
+        kbdClose.addEventListener('click', () => {
+            kbdModal.classList.add('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!kbdModal.contains(e.target) && e.target !== kbdGuideBtn) {
+                kbdModal.classList.add('hidden');
+            }
+        });
+    }
+
     // ASCII | Unicode segmented control listeners
     document.querySelectorAll('.seg-btn[data-encoding]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -738,33 +760,111 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Keyboard support
+    // Visual button press animation helper
+    function animateButton(btn) {
+        if (!btn) return;
+        btn.classList.add('key-pressed');
+        setTimeout(() => btn.classList.remove('key-pressed'), 140);
+    }
+
+    // Comprehensive Physical Keyboard Event Listener
     document.addEventListener('keydown', (e) => {
         const key = e.key;
 
-        if ((key >= '0' && key <= '9') || (calculator.currentMode === 'programmer' && calculator.currentBase === 16 && key.toUpperCase() >= 'A' && key.toUpperCase() <= 'F')) {
+        // Active Keypad helper
+        const activeKeypad = document.querySelector('.keypad:not(.hidden)');
+
+        // Numbers 0-9
+        if (key >= '0' && key <= '9') {
+            calculator.inputDigit(key);
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key.number[data-number="${key}"]`) : null;
+            animateButton(btn);
+        }
+        // Hex A-F / a-f (in Hex Programmer Mode)
+        else if (calculator.currentMode === 'programmer' && calculator.currentBase === 16 && key.toUpperCase() >= 'A' && key.toUpperCase() <= 'F') {
             calculator.inputDigit(key.toUpperCase());
-        } else if (key === '.') {
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key.hex-btn[data-hex="${key.toUpperCase()}"]`) : null;
+            animateButton(btn);
+        }
+        // Decimal point . or ,
+        else if (key === '.' || key === ',') {
             calculator.inputDecimal();
-        } else if (key === '+' || key === '-') {
-            const opBtn = document.querySelector(`.key.operator[data-operator="${key === '+' ? '+' : '-'}"]`);
-            calculator.handleOperator(key, opBtn);
-        } else if (key === '*' || key === 'x') {
-            const opBtn = document.querySelector(`.key.operator[data-operator="×"]`);
-            calculator.handleOperator('×', opBtn);
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key[data-action="decimal"]`) : null;
+            animateButton(btn);
+        }
+        // Operators
+        else if (key === '+' || key === '-') {
+            const opSymbol = key === '+' ? '+' : '-';
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key.operator[data-operator="${opSymbol}"]`) : null;
+            calculator.handleOperator(opSymbol, btn);
+            animateButton(btn);
+        } else if (key === '*' || key === 'x' || key === 'X') {
+            if (calculator.currentMode === 'programmer' && calculator.currentBase === 16 && (key === 'x' || key === 'X')) {
+                // Ignore if x is typed as hex letter in Hex mode
+                calculator.inputDigit(key.toUpperCase());
+            } else {
+                const btn = activeKeypad ? activeKeypad.querySelector(`.key.operator[data-operator="×"]`) : null;
+                calculator.handleOperator('×', btn);
+                animateButton(btn);
+            }
         } else if (key === '/') {
             e.preventDefault();
-            const opBtn = document.querySelector(`.key.operator[data-operator="÷"]`);
-            calculator.handleOperator('÷', opBtn);
-        } else if (key === 'Enter' || key === '=') {
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key.operator[data-operator="÷"]`) : null;
+            calculator.handleOperator('÷', btn);
+            animateButton(btn);
+        }
+        // Calculate / Equals / Enter
+        else if (key === 'Enter' || key === '=') {
             e.preventDefault();
             calculator.compute();
-        } else if (key === 'Escape') {
+            const btn = activeKeypad ? activeKeypad.querySelector(`.equals-btn`) : null;
+            animateButton(btn);
+        }
+        // Clear (AC)
+        else if (key === 'Escape' || key === 'c' || key === 'C') {
             calculator.clear();
-        } else if (key === '%') {
-            calculator.percent();
-        } else if (key === 'Backspace') {
+            const btn = activeKeypad ? activeKeypad.querySelector(`.clear-btn`) : null;
+            animateButton(btn);
+        }
+        // Backspace / Delete
+        else if (key === 'Backspace' || key === 'Delete') {
             calculator.backspace();
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key[data-action="backspace"]`) : null;
+            animateButton(btn);
+        }
+        // Percentage %
+        else if (key === '%') {
+            calculator.percent();
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key[data-action="percent"]`) : null;
+            animateButton(btn);
+        }
+        // Parentheses ( and )
+        else if (key === '(' || key === ')') {
+            const action = key === '(' ? 'paren-open' : 'paren-close';
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key[data-action="${action}"]`) : null;
+            animateButton(btn);
+        }
+        // Power ^ (Scientific)
+        else if (key === '^') {
+            if (calculator.currentMode === 'scientific') {
+                calculator.handleScientific('yx');
+                const btn = activeKeypad ? activeKeypad.querySelector(`.key[data-sci="yx"]`) : null;
+                animateButton(btn);
+            }
+        }
+        // Factorial ! (Scientific)
+        else if (key === '!') {
+            if (calculator.currentMode === 'scientific') {
+                calculator.handleScientific('fact');
+                const btn = activeKeypad ? activeKeypad.querySelector(`.key[data-sci="fact"]`) : null;
+                animateButton(btn);
+            }
+        }
+        // Constant Pi (p or P)
+        else if ((key === 'p' || key === 'P') && calculator.currentMode === 'scientific') {
+            calculator.handleScientific('pi');
+            const btn = activeKeypad ? activeKeypad.querySelector(`.key[data-sci="pi"]`) : null;
+            animateButton(btn);
         }
     });
 });

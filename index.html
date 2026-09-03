@@ -71,6 +71,43 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Keyboard Shortcuts Badge / Guide Button -->
+            <button class="kbd-guide-btn" id="kbd-guide-btn" title="Keyboard Shortcuts Guide">
+                <svg class="kbd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="6" width="20" height="12" rx="2"/>
+                    <line x1="6" y1="10" x2="6" y2="10"/>
+                    <line x1="10" y1="10" x2="10" y2="10"/>
+                    <line x1="14" y1="10" x2="14" y2="10"/>
+                    <line x1="18" y1="10" x2="18" y2="10"/>
+                    <line x1="7" y1="14" x2="17" y2="14"/>
+                </svg>
+                <span>Keyboard</span>
+            </button>
+        </div>
+
+        <!-- Keyboard Shortcuts Help Modal -->
+        <div class="kbd-modal hidden" id="kbd-modal">
+            <div class="kbd-modal-content">
+                <div class="kbd-header">
+                    <h3>⌨ Keyboard Shortcuts</h3>
+                    <button class="kbd-close" id="kbd-close">&times;</button>
+                </div>
+                <div class="kbd-list">
+                    <div class="kbd-row"><kbd>0 - 9</kbd> <span>Input Digits</span></div>
+                    <div class="kbd-row"><kbd>A - F</kbd> <span>Hex Digits (Programmer Mode)</span></div>
+                    <div class="kbd-row"><kbd>+</kbd> <kbd>-</kbd> <kbd>*</kbd> <kbd>/</kbd> <span>Arithmetic Operators</span></div>
+                    <div class="kbd-row"><kbd>Enter</kbd> or <kbd>=</kbd> <span>Calculate / Enter</span></div>
+                    <div class="kbd-row"><kbd>Backspace</kbd> / <kbd>Delete</kbd> <span>Delete last digit</span></div>
+                    <div class="kbd-row"><kbd>Esc</kbd> or <kbd>C</kbd> <span>Clear (AC)</span></div>
+                    <div class="kbd-row"><kbd>.</kbd> or <kbd>,</kbd> <span>Decimal Point</span></div>
+                    <div class="kbd-row"><kbd>%</kbd> <span>Percentage</span></div>
+                    <div class="kbd-row"><kbd>(</kbd> <kbd>)</kbd> <span>Parentheses</span></div>
+                    <div class="kbd-row"><kbd>^</kbd> <span>Power yˣ</span></div>
+                    <div class="kbd-row"><kbd>!</kbd> <span>Factorial x!</span></div>
+                    <div class="kbd-row"><kbd>P</kbd> <span>Constant π</span></div>
+                </div>
+            </div>
         </div>
 
         <!-- Programmer Top Controls -->
