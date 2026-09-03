@@ -30,13 +30,8 @@ class Calculator {
     }
 
     clear() {
-        if (this.currentValue !== '0' || this.awaitingNextOperand) {
-            this.currentValue = '0';
-            this.updateClearBtnText();
-            this.updateDisplay();
-        } else {
-            this.reset();
-        }
+        // Pressing AC / C completely resets state and clears upper expression display line
+        this.reset();
     }
 
     backspace() {
@@ -800,7 +795,6 @@ document.addEventListener('DOMContentLoaded', () => {
             animateButton(btn);
         } else if (key === '*' || key === 'x' || key === 'X') {
             if (calculator.currentMode === 'programmer' && calculator.currentBase === 16 && (key === 'x' || key === 'X')) {
-                // Ignore if x is typed as hex letter in Hex mode
                 calculator.inputDigit(key.toUpperCase());
             } else {
                 const btn = activeKeypad ? activeKeypad.querySelector(`.key.operator[data-operator="×"]`) : null;
